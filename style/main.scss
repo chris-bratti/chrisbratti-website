@@ -3,7 +3,7 @@
 .custom-background,.custom-background:hover{color:#000!important;background-color:#1A1A1A!important}
 .custom-card-background,.custom-card-background:hover{color:#000!important;background-color:#262626!important}
 .custom-accent-color,.custom-accent-color:hover{color: #000,!important;background-color: #60C689;}
-.custom-text-accent,.custom-text-accent:hover{color:#4c5533!important}
+.custom-text-accent,.custom-text-accent:hover{color:#6d7a49!important}
 .custom-text-body,.custom-text-body:hover{color:#fef7e4!important}
 .custom-accent-darkened, .custom-accent-darkened:hover{color:#295135!important}
 .custom-text-darkened, .custom-text-darkened:hover{color: #262626}
@@ -193,7 +193,9 @@ body {
     max-width: 1750px;
 	font-size: 1.1em;
 	line-height: 1.5;
-	background-color: #1a1f1e;
+	background-color: rgb(26, 31, 30, 0.7);
+	-webkit-backdrop-filter: blur(50px);
+  	backdrop-filter: blur(50px);
 }
 
 .card-title{
@@ -207,7 +209,7 @@ body {
 	margin-bottom: 5px;
 	font-size: 2.0em;
 	font-family: 'Abril Fatface', serif;
-	color: #4c5533;
+	color: #bfc8a4;
 }
 
 .action-form {
@@ -225,18 +227,31 @@ body {
 	color: #61615f;
 }
 
+.action-form textarea{
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 20px;
+	border: none;
+	border-radius: 4px;
+	background-color: #3c423b;
+	color: #d1d6cc;
+	box-sizing: border-box;
+	text-decoration: none;
+	display: inline-block;
+	height: 150px !important;
+}
+
 .action-form input[type="email"],
 .action-form input[type="text"],
 .action-form input[type="password"],
 .action-form input[type="submit"],
-.action-form textarea,
 .action-form A {
 	width: 100%;
 	padding: 10px;
 	margin-bottom: 20px;
 	border: none;
 	border-radius: 4px;
-	background-color: #444;
+	background-color: #3c423b;
 	color: #d1d6cc;
 	box-sizing: border-box;
 	text-decoration: none;
@@ -265,3 +280,39 @@ input:invalid {
 	}
 }
 
+ul.modern-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 3px solid #8a9a5b;
+}
+
+ul.modern-list li {
+    padding: 10px 15px;
+    position: relative;
+    font-size: 16px;
+    color: #d1d6cc;
+}
+
+ul.modern-list li:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+ul.icon-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+ul.icon-list li {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 0;
+}
+
+ul.icon-list li::before {
+    content: '▹';
+    font-size: 18px;
+    color: #8a9a5b;
+}
