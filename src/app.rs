@@ -29,19 +29,6 @@ pub fn App() -> impl IntoView {
     }
 }
 
-/// Renders the home page of your application.
-#[component]
-fn OldPage() -> impl IntoView {
-    // Creates a reactive value to update the button
-    let count = RwSignal::new(0);
-    let on_click = move |_| *count.write() += 1;
-
-    view! {
-        <h1>"Welcome to ChrisBratti.com"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
-    }
-}
-
 #[component]
 fn Overview() -> impl IntoView {
     view! {
@@ -129,7 +116,13 @@ fn AboutContainer() -> impl IntoView {
                 <div class="card-container" style="margin: 0px; padding: 5px">
                     <div class="experience-card">
                         <ContactForm/>
-                        <p>"Or find me at {email_here}"</p>
+                    </div>
+                </div>
+                <div class="card-container" style="margin: 0px; padding: 5px">
+                    <div class="experience-card">
+                        <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">"Or reach me here!"</h3>
+                        <p>"email@email.com"</p>
+                        <p>"https://www.linkedin.com/in/myname"</p>
                     </div>
                 </div>
             </div>
@@ -164,10 +157,17 @@ fn ContactForm() -> impl IntoView {
         { move || {
             if is_sent.get() {
                 view! {
-                    <h3>"Message sent! I'll get back to you soon"</h3>
+                    <div style="text-align: center">
+                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                        </svg>
+                        <h3>"Message sent! I'll get back to you soon"</h3>
+                    </div>
                 }.into_any()
             }else{
                 view!{
+                    <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">"Send me an email!"</h3>
                     <ActionForm attr:class="action-form" action=send_email>
                         <label class="form-label">
                             "First Name"
