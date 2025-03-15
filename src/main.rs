@@ -1,16 +1,31 @@
+use cfg_if::cfg_if;
+
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use actix_files::NamedFile;
+        use actix_web::{Result};
+        use actix_web::http::header::{ContentDisposition, DispositionParam, DispositionType};
+        use std::path::PathBuf;
+    }
+}
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use leptos::prelude::*;
+    use chrisbratti_website::{app::*, PersonalInfo, SmtpInfo};
     use leptos::config::get_configuration;
-    use leptos_meta::MetaTags;
+    use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
-    use chrisbratti_website::app::*;
+    use leptos_meta::MetaTags;
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
+
+    let personal_info = web::Data::new(PersonalInfo::new());
+
+    let smtp_info = web::Data::new(SmtpInfo::new());
 
     HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
@@ -27,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(Files::new("/assets", &site_root))
             // serve the favicon from /favicon.ico
             .service(favicon)
+            .service(download_pdf)
             .leptos_routes(routes, {
                 let leptos_options = leptos_options.clone();
                 move || {
@@ -48,6 +64,8 @@ async fn main() -> std::io::Result<()> {
                 }
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
+            .app_data(personal_info.clone())
+            .app_data(smtp_info.clone())
         //.wrap(middleware::Compress::default())
     })
     .bind(&addr)?
@@ -65,6 +83,25 @@ async fn favicon(
     Ok(actix_files::NamedFile::open(format!(
         "{site_root}/favicon.ico"
     ))?)
+}
+
+#[cfg(feature = "ssr")]
+#[actix_web::get("resume.pdf")]
+pub async fn download_pdf(
+    leptos_options: actix_web::web::Data<leptos::config::LeptosOptions>,
+) -> Result<NamedFile> {
+    println!("Serving resume...");
+    let leptos_options = leptos_options.into_inner();
+    let site_root = &leptos_options.site_root;
+    let path: PathBuf = format!("{site_root}/ChrisBratti_Resume.pdf").into();
+    let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {
+        disposition: DispositionType::Attachment,
+        parameters: vec![DispositionParam::Filename(
+            "ChrisBratti_Resume.pdf".to_string(),
+        )],
+    });
+
+    Ok(file)
 }
 
 #[cfg(not(any(feature = "ssr", feature = "csr")))]

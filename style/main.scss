@@ -13,6 +13,11 @@
 	color: #535351;
 }
 
+.in-line-icon {
+	line-height: 1.25;
+	margin-right: 10px;
+	float:left;
+}
 
 
 * {
@@ -278,6 +283,18 @@ input:invalid {
 	.content {
 		width: 95%;
 	}
+}
+
+.btn {
+	display: inline-block;
+	padding: 10px 20px;
+	background-color: #4c5533;
+	text-decoration: none;
+	border-radius: 4px;
+	color: #d1d6cc;
+}
+.btn:hover {
+	background-color: lighten(#4c5533, 10%);
 }
 
 ul.modern-list {

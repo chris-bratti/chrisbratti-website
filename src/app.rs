@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
+
 use crate::server_functions::*;
+use leptos::*;
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{components::*, path};
@@ -14,6 +16,8 @@ pub fn App() -> impl IntoView {
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/chrisbratti-website.css"/>
 
+        <Stylesheet id="googleicons" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
         // sets the document title
         <Title text="Welcome to ChrisBratti.com"/>
 
@@ -22,7 +26,7 @@ pub fn App() -> impl IntoView {
             <main>
                 <Routes fallback=move || "Not found.">
                     <Route path=path!("/") view=TestHomePage/>
-                    <Route path=path!("/*any") view=NotFound/>
+                   <Route path=path!("/*any") view=NotFound/>
                 </Routes>
             </main>
         </Router>
@@ -57,6 +61,7 @@ fn Overview() -> impl IntoView {
 }
 
 fn AboutContainer() -> impl IntoView {
+    let info_result = Resource::new_blocking(|| (), |_| { get_info() });
     view! {
         <div class="main-container">
             <div class="card-title">"About Me"</div>
@@ -100,6 +105,13 @@ fn AboutContainer() -> impl IntoView {
                         </ul>
                     </div>
                 </div>
+
+                <div class="card-container" style="margin: 0px; padding: 5px">
+                    <div class="experience-card">
+                        <a class="btn" rel="external" href="resume.pdf">"View my full resume!"</a>
+                    </div>
+                </div>
+
                 <div class="section-title">"Skills"</div>
                     <div class="card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card">
@@ -121,8 +133,15 @@ fn AboutContainer() -> impl IntoView {
                 <div class="card-container" style="margin: 0px; padding: 5px">
                     <div class="experience-card">
                         <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">"Or reach me here!"</h3>
-                        <p>"email@email.com"</p>
-                        <p>"https://www.linkedin.com/in/myname"</p>
+                        <Suspense fallback = || ()>
+                            {move || Suspend::new(async move {
+                                let info = info_result.await.unwrap();
+                                view! {
+                                    <p><i class="material-icons in-line-icon">mail</i>{format!{"{}", info.email}}</p>
+                                    <p><i class="material-icons in-line-icon">account_circle</i>{format!("{}", info.linkedin)}</p>
+                                }
+                            })}
+                        </Suspense>
                     </div>
                 </div>
             </div>
@@ -131,7 +150,7 @@ fn AboutContainer() -> impl IntoView {
 }
 
 #[component]
-fn TestHomePage() -> impl IntoView {
+fn TestHomePage() -> impl IntoView {    
     view! {
         <div class="home-page">
             <div class="parallax">
@@ -185,7 +204,7 @@ fn ContactForm() -> impl IntoView {
                             "Message"
                             <textarea name="message" required=true placeholder="Let's connect..."/>
                         </label>
-                        <input type="submit" value="Send"/>
+                        <input type="submit" disabled={move || {pending()}} value="Send"/>
                     </ActionForm>
                     {move || {
                         if pending() {
