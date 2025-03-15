@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use crate::server_functions::*;
-use leptos::*;
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{components::*, path};
@@ -61,7 +60,7 @@ fn Overview() -> impl IntoView {
 }
 
 fn AboutContainer() -> impl IntoView {
-    let info_result = Resource::new_blocking(|| (), |_| { get_info() });
+    let info_result = Resource::new_blocking(|| (), |_| get_info());
     view! {
         <div class="main-container">
             <div class="card-title">"About Me"</div>
@@ -150,7 +149,7 @@ fn AboutContainer() -> impl IntoView {
 }
 
 #[component]
-fn TestHomePage() -> impl IntoView {    
+fn TestHomePage() -> impl IntoView {
     view! {
         <div class="home-page">
             <div class="parallax">
@@ -171,68 +170,60 @@ fn ContactForm() -> impl IntoView {
     let send_email = ServerAction::<SendEmail>::new();
     let pending = send_email.pending();
     let send_result = send_email.value();
-    let is_sent = RwSignal::new(false);
+    let spinner_class = RwSignal::new(String::from("circle-loader"));
+    let check_class = RwSignal::new(String::from(""));
+    let message = RwSignal::new(String::from("Sending message..."));
     view! {
         { move || {
-            if is_sent.get() {
-                view! {
-                    <div style="text-align: center">
-                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
-                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                        </svg>
-                        <h3>"Message sent! I'll get back to you soon"</h3>
-                    </div>
-                }.into_any()
-            }else{
-                view!{
-                    <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">"Send me an email!"</h3>
-                    <ActionForm attr:class="action-form" action=send_email>
-                        <label class="form-label">
-                            "First Name"
-                            <input type="text" name="first_name" required=true placeholder="First name"/>
-                        </label>
-                        <label class="form-label">
-                            "Last Name"
-                            <input type="text" name="last_name" required=true placeholder="Last name"/>
-                        </label>
-                        <label class="form-label">
-                            "Email"
-                            <input type="email" name="email" required=true placeholder="example@example.com"/>
-                        </label>
-                        <label class="form-label">
-                            "Message"
-                            <textarea name="message" required=true placeholder="Let's connect..."/>
-                        </label>
-                        <input type="submit" disabled={move || {pending()}} value="Send"/>
-                    </ActionForm>
-                    {move || {
-                        if pending() {
-                            view! {<p>"Sending message..."</p>}.into_any()
-                        }else {
-                            view! {}.into_any()
-                        }
-                    }}
-                    {move || {
-                        match send_result.get() {
-                            Some(response) => {
-                                match response{
-                                    Ok(_) =>  {
-                                        is_sent.set(true);
-                                        view! {}.into_any()
-                                    },
-                                    Err(err) => view! { <p>{format!("{}", err)}</p> }.into_any()
+                if send_result.get().is_some() || pending() {
+                    view! {
+                        <div style="text-align: center">
+                            <div class={move || spinner_class.get()}>
+                                <div class={move || check_class.get()}></div>
+                            </div>
+                            <h3>{move || message.get() }</h3>
+                        </div>
+                        {move || {
+                            if send_result.get().is_some() {
+                                if send_result.get().unwrap().is_ok(){
+                                    spinner_class.set("circle-loader load-complete load-success" .to_string());
+                                    check_class.set("checkmark draw".to_string());
+                                    message.set("Message Sent! I'll get back to you soon!".to_string());
+                                }else{
+                                    spinner_class.set("circle-loader load-complete load-failure".to_string());
+                                    check_class.set("".to_string());
+                                    message.set("Message failed to send! Please contact me via email".to_string());
                                 }
                             }
-                            None => view! {}.into_any(),
-                        }
-                    }}
-                }.into_any()
+                        }}
+                    }.into_any()
+                }else{
+                    view! {
+                        <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">"Send me an email!"</h3>
+                        <ActionForm attr:class="action-form" action=send_email>
+                            <label class="form-label">
+                                "First Name"
+                                <input type="text" name="first_name" required=true placeholder="First name"/>
+                            </label>
+                            <label class="form-label">
+                                "Last Name"
+                                <input type="text" name="last_name" required=true placeholder="Last name"/>
+                            </label>
+                            <label class="form-label">
+                                "Email"
+                                <input type="email" name="email" required=true placeholder="example@example.com"/>
+                            </label>
+                            <label class="form-label">
+                                "Message"
+                                <textarea name="message" required=true placeholder="Let's connect..."/>
+                            </label>
+                            <input type="submit" disabled={move || {pending()}} value="Send"/>
+                        </ActionForm>
+                    }.into_any()
+                }
             }
-        }}
-        
+        }
     }
-    .into_any()
 }
 
 /// 404 - Not Found

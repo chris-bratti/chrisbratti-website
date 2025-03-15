@@ -3,6 +3,7 @@ use leptos::{prelude::ServerFnError, server};
 
 use crate::{PersonalInfo, SmtpInfo};
 
+// Backend dependencies and functions
 cfg_if! {
     if #[cfg(feature = "ssr")] {
         use lettre::{
