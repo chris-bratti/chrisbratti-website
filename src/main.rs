@@ -6,6 +6,8 @@ cfg_if! {
         use actix_web::{Result};
         use actix_web::http::header::{ContentDisposition, DispositionParam, DispositionType};
         use std::path::PathBuf;
+        use actix_web::web;
+        use redis::{Client, Commands};
     }
 }
 
@@ -14,7 +16,7 @@ cfg_if! {
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use chrisbratti_website::{app::*, PersonalInfo, SmtpInfo};
+    use chrisbratti_website::{app::*, server_functions::get_env_variable, PersonalInfo, SmtpInfo};
     use leptos::config::get_configuration;
     use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
@@ -22,10 +24,15 @@ async fn main() -> std::io::Result<()> {
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
+    let redis_connection_string =
+        get_env_variable("REDIS_CONNECTION_STRING").expect("Connection string not set!");
 
     let personal_info = web::Data::new(PersonalInfo::new());
 
     let smtp_info = web::Data::new(SmtpInfo::new());
+
+    let redis_client =
+        web::Data::new(redis::Client::open(redis_connection_string.clone()).unwrap());
 
     HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
@@ -50,14 +57,17 @@ async fn main() -> std::io::Result<()> {
                         <!DOCTYPE html>
                         <html lang="en">
                             <head>
-                                <meta charset="utf-8"/>
-                                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                                <meta charset="utf-8" />
+                                <meta
+                                    name="viewport"
+                                    content="width=device-width, initial-scale=1"
+                                />
                                 <AutoReload options=leptos_options.clone() />
-                                <HydrationScripts options=leptos_options.clone()/>
-                                <MetaTags/>
+                                <HydrationScripts options=leptos_options.clone() />
+                                <MetaTags />
                             </head>
                             <body>
-                                <App/>
+                                <App />
                             </body>
                         </html>
                     }
@@ -66,6 +76,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(leptos_options.to_owned()))
             .app_data(personal_info.clone())
             .app_data(smtp_info.clone())
+            .app_data(redis_client.clone())
         //.wrap(middleware::Compress::default())
     })
     .bind(&addr)?
@@ -86,14 +97,40 @@ async fn favicon(
 }
 
 #[cfg(feature = "ssr")]
-#[actix_web::get("resume.pdf")]
+#[actix_web::get("/{uuid}/resume.pdf")]
 pub async fn download_pdf(
+    path: web::Path<String>,
     leptos_options: actix_web::web::Data<leptos::config::LeptosOptions>,
-) -> Result<NamedFile> {
-    println!("Serving resume...");
+    redis_client: web::Data<Client>,
+) -> Result<NamedFile, actix_web::Error> {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let uuid = path.into_inner();
+    println!("Serving file for UUID: {}", uuid);
+
+    let mut con = redis_client
+        .get_connection()
+        .map_err(|_| actix_web::error::ErrorInternalServerError("Could not connect to redis!"))?;
+
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+
+    let score: Option<u64> = con
+        .zscore("pdf_links", &uuid)
+        .map_err(|_| actix_web::error::ErrorInternalServerError("Error fetching from redis!"))?;
+
+    if score.is_none_or(|expiry| expiry < now) {
+        return Err(actix_web::error::ErrorInternalServerError(
+            "Link invalid or expired",
+        ));
+    }
+
     let leptos_options = leptos_options.into_inner();
     let site_root = &leptos_options.site_root;
     let path: PathBuf = format!("{site_root}/ChrisBratti_Resume.pdf").into();
+
     let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {
         disposition: DispositionType::Attachment,
         parameters: vec![DispositionParam::Filename(

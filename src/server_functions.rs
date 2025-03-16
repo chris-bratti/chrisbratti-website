@@ -17,6 +17,9 @@ cfg_if! {
         use maud::html;
         use actix_web::web;
         use leptos_actix::extract;
+        use redis::Client;
+        use redis::Commands;
+
 
         use actix_web::Result;
 
@@ -39,6 +42,21 @@ cfg_if! {
                     }
                 }
             }
+        }
+
+        pub fn generate_token() -> String {
+            use rand::distributions::Alphanumeric;
+            use rand::{thread_rng, Rng};
+
+            let mut rng = thread_rng();
+
+            let generated_token: String = (&mut rng)
+                .sample_iter(Alphanumeric)
+                .take(32)
+                .map(char::from)
+                .collect();
+
+            generated_token
         }
 
         pub fn generate_message_email(first_name: &String, last_name:  &String, email: &String, message: &String) -> String {
@@ -162,4 +180,28 @@ pub async fn get_info() -> Result<PersonalInfo, ServerFnError> {
         email: data.email.clone(),
         linkedin: data.linkedin.clone(),
     })
+}
+
+#[server]
+pub async fn generate_pdf_link() -> Result<String, ServerFnError> {
+    let redis_client: web::Data<Client> = extract().await?;
+
+    let mut con = redis_client.get_connection().unwrap();
+    let uuid = generate_token();
+
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let ttl_seconds = 300;
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let expiry_time = now + ttl_seconds;
+
+    () = con.zadd("pdf_links", &uuid, expiry_time).map_err(|err| {
+        ServerFnError::new(format!("Error adding to redis cache!: {}", err.to_string()))
+    })?;
+
+    let url = format!("/{}/resume.pdf", uuid);
+    Ok(url)
 }
