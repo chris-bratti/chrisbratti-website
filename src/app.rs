@@ -62,6 +62,19 @@ fn Overview() -> impl IntoView {
     .into_any()
 }
 
+#[component]
+fn DetailContainer(title: String, children: Children) -> impl IntoView {
+    view! {
+        <details class="expandable-card">
+            <summary>{title}</summary>
+            <div class="card-content">
+                {children()}
+            </div>
+        </details>
+    }
+}
+
+#[component]
 fn AboutContainer() -> impl IntoView {
     let info_result = Resource::new_blocking(|| (), |_| get_info());
     let pdf_link = Resource::new_blocking(|| (), |_| generate_pdf_link());
@@ -80,124 +93,127 @@ fn AboutContainer() -> impl IntoView {
                         </h4>
                     </div>
                 </div>
-                <div class="section-title">"Experience"</div>
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        <h3>
-                            <span class="custom-text-accent">"Booz Allen Hamilton"</span>
-                        </h3>
-                        <h4>
-                            <span class="text-italic">
-                                "Software Engineer, Senior Consultant [Aug 2021 - Present]"
-                            </span>
-                        </h4>
-                        <ul class="icon-list">
-                            <li>"Develop and maintain suite of Spring Boot RESTful APIs"</li>
-                            <li>
-                                "Lead functionality implementation and project architecture planning"
-                            </li>
-                            <li>
-                                "Collaborate with Scrum team to deliver fully-tested, production ready solutions"
-                            </li>
-                            <li>
-                                "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage"
-                            </li>
-                            <li>
-                                "Deploy applications into Highly-Available EKS Kubernetes environment"
-                            </li>
-                            <li>
-                                "Automate workflows and processes by building tooling with Bash, Rust, and Python"
-                            </li>
-                            <li>
-                                "Mentor junior engineers on product expertise and coding standards"
-                            </li>
-                        </ul>
+                <DetailContainer title="Experience".to_owned()>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <h3>
+                                <span class="custom-text-accent">"Booz Allen Hamilton"</span>
+                            </h3>
+                            <h4>
+                                <span class="text-italic">
+                                    "Software Engineer, Senior Consultant [Aug 2021 - Present]"
+                                </span>
+                            </h4>
+                            <ul class="icon-list">
+                                <li>"Develop and maintain suite of Spring Boot RESTful APIs"</li>
+                                <li>
+                                    "Lead functionality implementation and project architecture planning"
+                                </li>
+                                <li>
+                                    "Collaborate with Scrum team to deliver fully-tested, production ready solutions"
+                                </li>
+                                <li>
+                                    "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage"
+                                </li>
+                                <li>
+                                    "Deploy applications into Highly-Available EKS Kubernetes environment"
+                                </li>
+                                <li>
+                                    "Automate workflows and processes by building tooling with Bash, Rust, and Python"
+                                </li>
+                                <li>
+                                    "Mentor junior engineers on product expertise and coding standards"
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        <h3>
-                            <span class="custom-text-accent">"The Hartford"</span>
-                        </h3>
-                        <h4>
-                            <span class="text-italic">
-                                "Associate Software Engineer [Jan 2019 - Aug 2021]"
-                            </span>
-                        </h4>
-                        <ul class="icon-list">
-                            <li>
-                                "Supported the development of PolicyCenter, a core insurance platform"
-                            </li>
-                            <li>
-                                "Developed Python scripts to automate error detection and improve workflows"
-                            </li>
-                            <li>
-                                "Spearheaded migration of legacy SOAP services to modern RESTful APIs"
-                            </li>
-                            <li>
-                                "Integrated PolicyCenter with other applications within the Hartford"
-                            </li>
-                            <li>"Automated API testing using the Karate framework"</li>
-                            <li>
-                                "Designed and optimized reusable SQL queries for ad hoc business needs"
-                            </li>
-                        </ul>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <h3>
+                                <span class="custom-text-accent">"The Hartford"</span>
+                            </h3>
+                            <h4>
+                                <span class="text-italic">
+                                    "Associate Software Engineer [Jan 2019 - Aug 2021]"
+                                </span>
+                            </h4>
+                            <ul class="icon-list">
+                                <li>
+                                    "Supported the development of PolicyCenter, a core insurance platform"
+                                </li>
+                                <li>
+                                    "Developed Python scripts to automate error detection and improve workflows"
+                                </li>
+                                <li>
+                                    "Spearheaded migration of legacy SOAP services to modern RESTful APIs"
+                                </li>
+                                <li>
+                                    "Integrated PolicyCenter with other applications within the Hartford"
+                                </li>
+                                <li>"Automated API testing using the Karate framework"</li>
+                                <li>
+                                    "Designed and optimized reusable SQL queries for ad hoc business needs"
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
 
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        {move || Suspend::new(async move {
-                            let redirect_link = pdf_link.await.unwrap();
-                            view! {
-                                <a class="btn" rel="external" href=redirect_link>
-                                    "View my full resume!"
-                                </a>
-                            }
-                        })}
-                    </div>
-                </div>
-
-                <div class="section-title">"Skills"</div>
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        <ul class="modern-list">
-                            <li>"Java, Rust, Bash, Python, SQL"</li>
-                            <li>"Spring Boot, jUnit, AssertJ, Mockito"</li>
-                            <li>"Docker, Kubernetes, AWS, Jenkins, ArgoCD"</li>
-                            <li>"Git, GitHub, Swagger, Postman, IntelliJ"</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="section-title">"Contact Me"</div>
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        <ContactForm />
-                    </div>
-                </div>
-                <div class="card-container" style="margin: 0px; padding: 5px">
-                    <div class="experience-card">
-                        <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
-                            "Or reach me here!"
-                        </h3>
-                        <Suspense fallback=|| ()>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card" style="text-align: center">
                             {move || Suspend::new(async move {
-                                let info = info_result.await.unwrap();
+                                let redirect_link = pdf_link.await.unwrap();
                                 view! {
-                                    <p>
-                                        <i class="material-icons in-line-icon">mail</i>
-                                        {format!("{}", info.email)}
-                                    </p>
-                                    <p>
-                                        <i class="material-icons in-line-icon">account_circle</i>
-                                        {format!("{}", info.linkedin)}
-                                    </p>
+                                    <a class="btn" rel="external" href=redirect_link>
+                                        "View my full resume!"
+                                    </a>
                                 }
                             })}
-                        </Suspense>
+                        </div>
                     </div>
-                </div>
+                </DetailContainer>
+
+                <DetailContainer title="Skills".to_owned()>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <ul class="modern-list">
+                                <li>"Java, Rust, Bash, Python, SQL"</li>
+                                <li>"Spring Boot, jUnit, AssertJ, Mockito"</li>
+                                <li>"Docker, Kubernetes, AWS, Jenkins, ArgoCD"</li>
+                                <li>"Git, GitHub, Swagger, Postman, IntelliJ"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </DetailContainer>
+
+                <DetailContainer title="Contact Me".to_owned()>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <ContactForm />
+                        </div>
+                    </div>
+                    <div class="card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
+                                "Or reach me here!"
+                            </h3>
+                            <Suspense fallback=|| ()>
+                                {move || Suspend::new(async move {
+                                    let info = info_result.await.unwrap();
+                                    view! {
+                                        <p>
+                                            <i class="material-icons in-line-icon">mail</i>
+                                            {format!("{}", info.email)}
+                                        </p>
+                                        <p>
+                                            <i class="material-icons in-line-icon">account_circle</i>
+                                            {format!("{}", info.linkedin)}
+                                        </p>
+                                    }
+                                })}
+                            </Suspense>
+                        </div>
+                    </div>
+                </DetailContainer>                
             </div>
         </div>
     }.into_any()

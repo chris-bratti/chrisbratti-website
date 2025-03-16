@@ -79,7 +79,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(redis_client.clone())
         //.wrap(middleware::Compress::default())
     })
-    .bind(&addr)?
+    .bind("0.0.0.0:3000")?
     .run()
     .await
 }
