@@ -63,14 +63,15 @@ fn Overview() -> impl IntoView {
 }
 
 #[component]
-fn DetailContainer(title: String, children: Children) -> impl IntoView {
+fn DetailContainer(title: String, children: Children, #[prop(optional)] open: bool) -> impl IntoView {
     view! {
-        <details class="expandable-card">
+        <details class="expandable-card" open=open>
             <summary>{title}</summary>
             <div class="card-content">
                 {children()}
             </div>
         </details>
+        
     }
 }
 
@@ -82,19 +83,22 @@ fn AboutContainer() -> impl IntoView {
         <div class="main-container">
             <div class="card-title">"About Me"</div>
             <div class="card">
-                <div class="section-title">"Hi there!"</div>
-                <div class="card-container dark-background" style="margin: 0px; padding: 5px">
-                    <div class="experience-card" style="text-align:center">
-                        <h4>
-                            "My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
-                            I bring extensive experience developing RESTful APIs, test automation, and managing deployment pipelines.
-                            I'm known for clear communication, a proven track record of delivering results, and a passion for solving complex problems.
-                            "
-                        </h4>
+                <DetailContainer title="Hi there!".to_owned() open=true>
+                    <div class="sub-card-container">
+                        <div class="card-container">
+                            <div class="experience-card" style="text-align:center">
+                                <h4>
+                                    "My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
+                                    I bring extensive experience developing RESTful APIs, test automation, and managing deployment pipelines.
+                                    I'm known for clear communication, a proven track record of delivering results, and a passion for solving complex problems.
+                                    "
+                                </h4>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </DetailContainer>
                 <DetailContainer title="Experience".to_owned()>
-                    <div class="card-container" style="margin: 0px; padding: 5px">
+                    <div class="sub-card-container">
                         <div class="experience-card">
                             <h3>
                                 <span class="custom-text-accent">"Booz Allen Hamilton"</span>
@@ -126,8 +130,6 @@ fn AboutContainer() -> impl IntoView {
                                 </li>
                             </ul>
                         </div>
-                    </div>
-                    <div class="card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card">
                             <h3>
                                 <span class="custom-text-accent">"The Hartford"</span>
@@ -156,9 +158,6 @@ fn AboutContainer() -> impl IntoView {
                                 </li>
                             </ul>
                         </div>
-                    </div>
-
-                    <div class="card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card" style="text-align: center">
                             {move || Suspend::new(async move {
                                 let redirect_link = pdf_link.await.unwrap();
@@ -173,9 +172,9 @@ fn AboutContainer() -> impl IntoView {
                 </DetailContainer>
 
                 <DetailContainer title="Skills".to_owned()>
-                    <div class="card-container" style="margin: 0px; padding: 5px">
+                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card">
-                            <ul class="modern-list">
+                            <ul class="icon-list">
                                 <li>"Java, Rust, Bash, Python, SQL"</li>
                                 <li>"Spring Boot, jUnit, AssertJ, Mockito"</li>
                                 <li>"Docker, Kubernetes, AWS, Jenkins, ArgoCD"</li>
@@ -185,13 +184,91 @@ fn AboutContainer() -> impl IntoView {
                     </div>
                 </DetailContainer>
 
-                <DetailContainer title="Contact Me".to_owned()>
-                    <div class="card-container" style="margin: 0px; padding: 5px">
+                <DetailContainer title="Projects".to_owned()>
+                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
+                        <div class="experience-card">
+                            <h2>"auth-server"</h2>
+                            <h4>"A full stack Rust OAuth server written with the Leptos framework"</h4>
+                            <h5>"
+                            This project initially began as "<a target="_blank" rel="noopener noreferrer" href="https://github.com/chris-bratti/auth_leptos">"auth_leptos"</a>", a full stack user authentication application.
+                            What started as a desire to get more hands-on experience with authentication systems has turned into a full OAuth server. The included docker-compose.yaml file makes it
+                            easy to deploy into a Docker or Kubernetes environment. Integrating new OAuth clients is simple and secure - clients can sign up using the REST endpoint and admins can
+                            approve or deny new clients in the Admin Dashboard.
+                            "</h5>
+                            <h5>"Features:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Full OAuth Authorization Code flow - easy to integrate and protect applications"</li>
+                                <li>"Secure user signup, login, and password reset"</li>
+                                <li>"Persistent user session storage with actix_sessions"</li>
+                                <li>"Two factor authentication with Time-Based One Time Passwords (TOTP)"</li>
+                                <li>"Admin Dashboard"</li>
+                                <li>"Database hashing and encryption"</li>
+                                <li>"Redis integration for application caching"</li>
+                            </ul>
+                            <h5>"Technologies/skills used:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Rust, Leptos, Actix Web"</li>
+                                <li>"WASM, HTML, CSS"</li>
+                                <li>"Diesel, Postgres, Redis"</li>
+                                <li>"Argon2 hashing, database encryption"</li>
+                                <li>"Docker"</li>
+                            </ul>
+                            <a class="btn" target="_blank" rel="noopener noreferrer" href="https://github.com/chris-bratti/auth-server">"View on GitHub!"</a>
+                        </div>
+                        <div class="experience-card">
+                            <h2>"chrisbratti-website"</h2>
+                            <h4>"Full stack resume and portfolio site (you're using it right now!)"</h4>
+                            <h5>"
+                            The repository for this site: a full-stack portfolio and resume website written in Rust. With a WASM-compiled front-end and an Actix-Web server, this site is 'blazingly fast'
+                            with minimal overhead.
+                            "</h5>
+                            <h5>"Features:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Eye-catching UI designed with Leptos"</li>
+                                <li>"Fast and lightweight back-end written in Rust with Leptos and Actix"</li>
+                                <li>"Secure SMTP communication with TLS"</li>
+                                <li>"Protected download links"</li>
+                            </ul>
+                            <h5>"Technologies/skills used:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Rust, Leptos, Actix Web"</li>
+                                <li>"WASM, HTML, CSS"</li>
+                                <li>"Docker"</li>
+                            </ul>
+                            <a class="btn" target="_blank" rel="noopener noreferrer" href="https://github.com/chris-bratti/chrisbratti-website">"View on GitHub!"</a>
+                        </div>
+                        <div class="experience-card">
+                            <h2>"wireguard-init"</h2>
+                            <h4>"Script to automate the creation of a WireGuard server and peers"</h4>
+                            <h5>"A lightweight and easy-to-use script to automate initializing, configuring, and deploying a WireGuard server and peers. I've developed and used this script to deploy several WireGuard servers to
+                            enable secure remote communication with my personal network when I'm away from home."</h5>
+                            <h5>"Features:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Creates a secure peer-to-peer VPN network in just a few minutes"</li>
+                                <li>"Ability to customize IP address subnet, listening port, DNS server addresses, and more"</li>
+                                <li>"Automates peer/client setup"</li>
+                                <li>"Generates QR codes for configuring mobile peers"</li>
+                                <li>"Lightweight"</li>
+                            </ul>
+                            <h5>"Technologies/skills used:"</h5>
+                            <ul class="modern-list" style="font-size: .85em">
+                                <li>"Bash"</li>
+                                <li>"Networking"</li>
+                                <li>"Routing"</li>
+                            </ul>
+                            <a target="_blank" rel="noopener noreferrer" href="https://github.com/chris-bratti/wireguard-init">"View on GitHub!"</a>
+                        </div>
+                        <div class="experience-card" style="text-align: center">
+                            <a class="btn" target="_blank" rel="noopener noreferrer" href="https://github.com/chris-bratti" style="font-size:1em">"Check out the rest of my projects on GitHub!"</a>
+                        </div>
+                    </div>
+                </DetailContainer>
+
+                <DetailContainer title="Contact Me".to_owned() open=true>
+                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card">
                             <ContactForm />
                         </div>
-                    </div>
-                    <div class="card-container" style="margin: 0px; padding: 5px">
                         <div class="experience-card">
                             <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
                                 "Or reach me here!"
@@ -231,7 +308,7 @@ fn TestHomePage() -> impl IntoView {
                 <div class="down-arrow">"⇓"</div>
             </div>
             <div class="blurred-backdrop">
-                <Overview />
+                //<Overview />
                 <AboutContainer />
             </div>
         </div>
