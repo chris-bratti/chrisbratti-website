@@ -158,9 +158,7 @@ fn ContactForm() -> impl IntoView {
                     .into_any()
             } else {
                 view! {
-                    <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
-                        "Send me an email!"
-                    </h3>
+                    <div class="experience-card-title">"Send me an email!"</div>
                     <ActionForm attr:class="action-form" action=send_email>
                         <label class="form-label">
                             "First Name"
@@ -207,9 +205,7 @@ fn ExperienceDetails() -> impl IntoView {
     let pdf_link = Resource::new_blocking(|| (), |_| generate_pdf_link());
     view! {
         <div class="experience-card">
-            <h3>
-                <span class="custom-text-accent">"Booz Allen Hamilton"</span>
-            </h3>
+            <div class="experience-card-title">"Booz Allen Hamilton"</div>
             <h4>
                 <span class="text-italic">
                     "Software Engineer, Senior Consultant [Aug 2021 - Present]"
@@ -232,9 +228,7 @@ fn ExperienceDetails() -> impl IntoView {
             </ul>
         </div>
         <div class="experience-card">
-            <h3>
-                <span class="custom-text-accent">"The Hartford"</span>
-            </h3>
+            <div class="experience-card-title">"The Hartford"</div>
             <h4>
                 <span class="text-italic">"Associate Software Engineer [Jan 2019 - Aug 2021]"</span>
             </h4>
@@ -263,47 +257,73 @@ fn ExperienceDetails() -> impl IntoView {
 }
 
 #[component]
-fn SkillsDetails() -> impl IntoView {
+fn SkillComponent(title: &'static str, skills: Vec<&'static str>) -> impl IntoView {
     view! {
         <div class="experience-card">
-            <h4>"Languages"</h4>
+            <div class="experience-card-title">{title}</div>
             <ul class="modern-list">
-                <li>"Java"</li>
-                <li>"Rust"</li>
-                <li>"Bash"</li>
-                <li>"Python"</li>
-                <li>"SQL"</li>
-            </ul>
-            <h4>"Tools and Frameworks"</h4>
-            <ul class="modern-list">
-                <li>"Spring Boot"</li>
-                <li>"jUnit"</li>
-                <li>"AssertJ"</li>
-                <li>"Mockito"</li>
-                <li>"Leptos"</li>
-                <li>"Actix Web"</li>
-                <li>"Helm"</li>
-                <li>"OAuth"</li>
-            </ul>
-            <h4>"DevOps and Deployment"</h4>
-            <ul class="modern-list">
-                <li>"Kubernetes"</li>
-                <li>"Docker"</li>
-                <li>"AWS"</li>
-                <li>"Jenkins"</li>
-                <li>"ArgoCD"</li>
-                <li>"Hasicorp"</li>
-            </ul>
-            <h4>"Development Tools"</h4>
-            <ul class="modern-list">
-                <li>"Git"</li>
-                <li>"GitHub"</li>
-                <li>"Swagger/OpenAPI"</li>
-                <li>"Postman"</li>
-                <li>"Bruno"</li>
-                <li>"IntelliJ"</li>
+                {skills.into_iter()
+                    .map(|skill| view! { <li>{skill}</li>})
+                    .collect_view()}
             </ul>
         </div>
+    }
+}
+
+#[component]
+fn SkillsDetails() -> impl IntoView {
+    let langues = vec!["Java", "Rust", "Bash", "Python", "SQL"];
+    let frameworks = vec![
+        "Spring Boot",
+        "jUnit",
+        "AssertJ",
+        "Mockito",
+        "Leptos",
+        "Actix Web",
+        "Helm",
+        "OAuth",
+    ];
+    let devops = vec![
+        "Kubernetes",
+        "Docker",
+        "AWS",
+        "Jenkins",
+        "ArgoCD",
+        "Hashicorp",
+    ];
+    let dev_tools = vec![
+        "Git",
+        "GitHub",
+        "Swagger / OpenAPI",
+        "Postman",
+        "Bruno",
+        "IntelliJ",
+    ];
+    view! {
+        <SkillComponent title="Languages" skills=langues/>
+        <SkillComponent title="Tools and Frameworks" skills=frameworks/>
+        <SkillComponent title="DevOps and Deployment" skills=devops/>
+        <SkillComponent title="Development Tools" skills=dev_tools/>
+    }
+}
+
+#[component]
+fn GitHubLink(project_name: String, text: Option<String>) -> impl IntoView {
+    view! {
+        <a
+                class="btn github-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                href={format!("https://github.com/chris-bratti/{}", project_name)}
+            >
+            {
+                if text.is_none(){
+                    "View on GitHub!".to_string()
+                }else{
+                    text.unwrap().to_string()
+                }
+            } <img src="/assets/github-mark.png" class="github-icon"/>
+            </a>
     }
 }
 
@@ -311,8 +331,10 @@ fn SkillsDetails() -> impl IntoView {
 fn ProjectsDetails() -> impl IntoView {
     view! {
         <div class="experience-card">
-            <h2>"auth-server"</h2>
-            <h4>"A full stack Rust OAuth server written with the Leptos framework"</h4>
+            <div class="experience-card-title">"Auth-server"</div>
+            <span class="text-italic">
+                    "A full stack Rust OAuth server written with the Leptos framework"
+            </span>
             <h5>
                 "
                 This project initially began as "
@@ -328,7 +350,9 @@ fn ProjectsDetails() -> impl IntoView {
                 approve or deny new clients in the Admin Dashboard.
                 "
             </h5>
-            <h5>"Features:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Features"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>
                     "Full OAuth Authorization Code flow - easy to integrate and protect applications"
@@ -340,7 +364,9 @@ fn ProjectsDetails() -> impl IntoView {
                 <li>"Database hashing and encryption"</li>
                 <li>"Redis integration for application caching"</li>
             </ul>
-            <h5>"Technologies/skills used:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Technologies/skills used"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>"Rust, Leptos, Actix Web"</li>
                 <li>"WASM, HTML, CSS"</li>
@@ -348,54 +374,50 @@ fn ProjectsDetails() -> impl IntoView {
                 <li>"Argon2 hashing, database encryption"</li>
                 <li>"Docker"</li>
             </ul>
-            <a
-                class="btn"
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://github.com/chris-bratti/auth-server"
-            >
-                "View on GitHub!"
-            </a>
+            <GitHubLink project_name="auth-server".to_string() text=None/>
         </div>
         <div class="experience-card">
-            <h2>"chrisbratti-website"</h2>
-            <h4>"Full stack resume and portfolio site (you're using it right now!)"</h4>
+            <div class="experience-card-title">"Resume Website"</div>
+            <span class="text-italic">
+                    "Full stack resume and portfolio site (you're using it right now!)"
+            </span>
             <h5>
                 "
                 The repository for this site: a full-stack portfolio and resume website written in Rust. With a WASM-compiled front-end and an Actix-Web server, this site is 'blazingly fast'
                 with minimal overhead.
                 "
             </h5>
-            <h5>"Features:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Features"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>"Eye-catching UI designed with Leptos"</li>
                 <li>"Fast and lightweight back-end written in Rust with Leptos and Actix"</li>
                 <li>"Secure SMTP communication with TLS"</li>
                 <li>"Protected download links"</li>
             </ul>
-            <h5>"Technologies/skills used:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Technologies/skills used"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>"Rust, Leptos, Actix Web"</li>
                 <li>"WASM, HTML, CSS"</li>
                 <li>"Docker"</li>
             </ul>
-            <a
-                class="btn"
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://github.com/chris-bratti/chrisbratti-website"
-            >
-                "View on GitHub!"
-            </a>
+            <GitHubLink project_name="chrisbratti-website".to_string() text=None/>
         </div>
         <div class="experience-card">
-            <h2>"wireguard-init"</h2>
-            <h4>"Script to automate the creation of a WireGuard server and peers"</h4>
+            <div class="experience-card-title">"Wireguard-init"</div>
+            <span class="text-italic">
+                    "Script to automate the creation of a WireGuard server and peers"
+            </span>
             <h5>
                 "A lightweight and easy-to-use script to automate initializing, configuring, and deploying a WireGuard server and peers. I've developed and used this script to deploy several WireGuard servers to
                 enable secure remote communication with my personal network when I'm away from home."
             </h5>
-            <h5>"Features:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Features"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>"Creates a secure peer-to-peer VPN network in just a few minutes"</li>
                 <li>
@@ -405,31 +427,18 @@ fn ProjectsDetails() -> impl IntoView {
                 <li>"Generates QR codes for configuring mobile peers"</li>
                 <li>"Lightweight"</li>
             </ul>
-            <h5>"Technologies/skills used:"</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Technologies/skills used"</span>
+            </h4>
             <ul class="modern-list" style="font-size: .85em">
                 <li>"Bash"</li>
                 <li>"Networking"</li>
                 <li>"Routing"</li>
             </ul>
-            <a
-                class="btn"
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://github.com/chris-bratti/wireguard-init"
-            >
-                "View on GitHub!"
-            </a>
+            <GitHubLink project_name="wireguard-init".to_string() text=None/>
         </div>
         <div class="experience-card" style="text-align: center">
-            <a
-                class="btn"
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://github.com/chris-bratti"
-                style="font-size:1em"
-            >
-                "Check out the rest of my projects on GitHub!"
-            </a>
+            <GitHubLink project_name="".to_string() text=Some("Check out the rest of my projects on GitHub!".to_string())/>
         </div>
     }
 }
@@ -442,19 +451,17 @@ fn ContactDetails() -> impl IntoView {
             <ContactForm />
         </div>
         <div class="experience-card">
-            <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
-                "Or reach me here!"
-            </h3>
+            <div class="experience-card-title">"Or reach me here!"</div>
             <Suspense fallback=|| ()>
                 {move || Suspend::new(async move {
                     let info = info_result.await.unwrap();
                     view! {
                         <p>
-                            <i class="material-icons in-line-icon">mail</i>
+                            <span class="custom-text-accent"><i class="material-icons in-line-icon">mail</i></span>
                             {format!("{}", info.email)}
                         </p>
                         <p>
-                            <i class="material-icons in-line-icon">account_circle</i>
+                            <span class="custom-text-accent"><i class="material-icons in-line-icon">account_circle</i></span>
                             {format!("{}", info.linkedin)}
                         </p>
                     }

@@ -159,6 +159,12 @@ body {
 	background-color: #252a29;
 }
 
+.experience-card-title {
+	color: #6d7a49;
+	font-size: 1.25em;
+	font-weight: bold;
+}
+
 .card {
 	padding: 100px;
 	border-radius: 10px;
@@ -370,6 +376,18 @@ summary {
 	align-items: center;
 	justify-content: center;
 	gap: 10px;
+}
+
+.github-link {
+	align-items: center; 
+	justify-content: center;
+	gap: 10px; 
+	display:flex
+}
+
+.github-icon {
+	height: 25px;
+	width: 25px;
 }
 
 summary::before {
