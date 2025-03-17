@@ -21,7 +21,7 @@ pub fn App() -> impl IntoView {
         />
 
         // sets the document title
-        <Title text="Welcome to ChrisBratti.com" />
+        <Title text="Chris Bratti" />
 
         // content for this welcome page
         <Router>
@@ -157,7 +157,6 @@ fn ContactForm() -> impl IntoView {
                 }
                     .into_any()
             } else {
-                // Updates the animation based on if the email sent correctly or not
                 view! {
                     <h3 style="margin-bottom: 5px;font-family: 'Abril Fatface', serif;color: #bfc8a4;">
                         "Send me an email!"

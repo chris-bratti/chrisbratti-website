@@ -100,7 +100,6 @@ async fn favicon(
 #[actix_web::get("/{uuid}/resume.pdf")]
 pub async fn download_pdf(
     path: web::Path<String>,
-    leptos_options: actix_web::web::Data<leptos::config::LeptosOptions>,
     redis_client: web::Data<Client>,
 ) -> Result<NamedFile, actix_web::Error> {
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -127,9 +126,7 @@ pub async fn download_pdf(
         ));
     }
 
-    let leptos_options = leptos_options.into_inner();
-    let site_root = &leptos_options.site_root;
-    let path: PathBuf = format!("{site_root}/ChrisBratti_Resume.pdf").into();
+    let path: PathBuf = format!("/files/ChrisBratti_Resume.pdf").into();
 
     let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {
         disposition: DispositionType::Attachment,
