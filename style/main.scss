@@ -1,12 +1,9 @@
-/* W3.CSS 4.15 December 2020 by Jan Egil and Borge Refsnes */
-/* Colors */
-.custom-background,.custom-background:hover{color:#000!important;background-color:#1A1A1A!important}
-.custom-card-background,.custom-card-background:hover{color:#000!important;background-color:#262626!important}
-.custom-accent-color,.custom-accent-color:hover{color: #000,!important;background-color: #60C689;}
 .custom-text-accent,.custom-text-accent:hover{color:#6d7a49!important}
-.custom-text-body,.custom-text-body:hover{color:#fef7e4!important}
-.custom-accent-darkened, .custom-accent-darkened:hover{color:#295135!important}
-.custom-text-darkened, .custom-text-darkened:hover{color: #262626}
+$text-accent: #6d7a49;
+$title-color: #4c5533;
+$body-text-color: #d1d6cc;
+$summary-text-color: #bfc8a4;
+$card-color: #252a29;
 
 .text-italic{
 	font-style: italic;
@@ -73,7 +70,7 @@ input.contact, textarea.contact{
 	font-family: 'Lato', serif;
 	margin-top: 10px;
 	letter-spacing: 0.1em;
-	color: #4c5533;
+	color: $title-color;
 }
 
 .down-arrow {
@@ -111,7 +108,7 @@ body {
 	background: rgb(27, 38, 44, 0.25);
 	-webkit-backdrop-filter: blur(50px);
   	backdrop-filter: blur(50px);
-	color: #d1d6cc;
+	color: $body-text-color;
 }
 
 .main-container {
@@ -123,7 +120,7 @@ body {
     margin: 0px auto;
 	padding: 0px;
 	text-align: center;
-	color: #d1d6cc;
+	color: $body-text-color;
 }
 
 .card-container,
@@ -136,7 +133,7 @@ body {
     margin: 0px auto;
 	padding: 50px;
 	text-align: center;
-	color: #d1d6cc;
+	color: $body-text-color;
 }
 
 .sub-card-container {
@@ -156,11 +153,11 @@ body {
 	font-size: 1.1em;
 	line-height: 1.5;
 	text-align: left;
-	background-color: #252a29;
+	background-color: $card-color;
 }
 
 .experience-card-title {
-	color: #6d7a49;
+	color: $text-accent;
 	font-size: 1.25em;
 	font-weight: bold;
 }
@@ -183,14 +180,14 @@ body {
 	margin-bottom: 10px;
 	font-size: 2.5em;
 	font-family: 'Abril Fatface', serif;
-	color: #4c5533;
+	color: $title-color;
 }
 
 .section-title{
 	margin-bottom: 5px;
 	font-size: 2.0em;
 	font-family: 'Abril Fatface', serif;
-	color: #bfc8a4;
+	color: $summary-text-color;
 }
 
 a {
@@ -219,7 +216,7 @@ a {
 	border: none;
 	border-radius: 4px;
 	background-color: #3c423b;
-	color: #d1d6cc;
+	color: $body-text-color;
 	box-sizing: border-box;
 	text-decoration: none;
 	display: inline-block;
@@ -237,17 +234,17 @@ a {
 	border: none;
 	border-radius: 4px;
 	background-color: #3c423b;
-	color: #d1d6cc;
+	color: $body-text-color;
 	box-sizing: border-box;
 	text-decoration: none;
 	display: inline-block;
 }
 .action-form input[type="submit"] {
-	background-color: #4c5533;
+	background-color: $title-color;
 	cursor: pointer;
 }
 .action-form input[type="submit"]:hover {
-	background-color: lighten(#4c5533, 10%);
+	background-color: lighten($title-color, 10%);
 }
 
 input:valid {
@@ -305,13 +302,13 @@ input:invalid {
 .btn {
 	display: inline-block;
 	padding: 10px 20px;
-	background-color: #4c5533;
+	background-color: $title-color;
 	text-decoration: none;
 	border-radius: 4px;
-	color: #d1d6cc;
+	color: $body-text-color;
 }
 .btn:hover {
-	background-color: lighten(#4c5533, 10%);
+	background-color: lighten($title-color, 10%);
 }
 
 ul.modern-list {
@@ -326,7 +323,7 @@ ul.modern-list li {
     padding: 10px 15px;
     position: relative;
     font-size: 16px;
-    color: #d1d6cc;
+    color: $body-text-color;
 }
 
 ul.modern-list li:not(:last-child) {
@@ -371,7 +368,7 @@ summary {
 	list-style: none;
 	font-size: 2.0em;
 	font-family: 'Abril Fatface', serif;
-	color: #bfc8a4;
+	color: $summary-text-color;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -395,7 +392,7 @@ summary::before {
 	font-size: 14px;
 	font-size: 0.5em;
 	transition: transform 0.3s ease-in-out;
-	color: #bfc8a4;
+	color: $summary-text-color;
   }
   
 details[open] summary::before {
@@ -415,10 +412,10 @@ details[open] summary::before {
 .collapsible {
 	display: inline-block;
 	padding: 10px 20px;
-	background-color: #4c5533;
+	background-color: $title-color;
 	text-decoration: none;
 	border-radius: 4px;
-	color: #d1d6cc;
+	color: $body-text-color;
 	text-align: center;
 	width: 100%;
   }

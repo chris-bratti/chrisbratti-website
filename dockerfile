@@ -7,7 +7,7 @@ RUN cp cargo-binstall /usr/local/cargo/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends clang pkg-config libssl-dev
 
-RUN cargo binstall cargo-leptos -y
+RUN cargo install cargo-leptos --locked
 
 RUN rustup target add wasm32-unknown-unknown
 
