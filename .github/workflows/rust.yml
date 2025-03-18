@@ -8,27 +8,15 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build_and_test:
+    name: Rust project - latest
     runs-on: ubuntu-latest
-
-    services:
-      redis-server:
-        image: redis:latest
-        ports:
-          - 6379:6379
-        options: --health-cmd "redis-cli ping"
-        
+    strategy:
+      matrix:
+        toolchain:
+          - nightly
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          path: rec_temp         
-        
-      - name: Test
-        run: cargo test --verbose --workspace --features ssr
-        working-directory: rec_temp
-
-      - name: Cleanup
-        run: |
-          rm -rf .env
-        working-directory: rec_temp
+      - uses: actions/checkout@v4
+      - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+      - run: cargo build --verbose --features ssr
+      - run: cargo test --verbose --features ssr
