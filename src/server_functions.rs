@@ -45,10 +45,10 @@ cfg_if! {
         }
 
         pub fn generate_token() -> String {
-            use rand::distributions::Alphanumeric;
-            use rand::{thread_rng, Rng};
+            use rand::distr::Alphanumeric;
+            use rand::{Rng};
 
-            let mut rng = thread_rng();
+            let mut rng = rand::rng();
 
             let generated_token: String = (&mut rng)
                 .sample_iter(Alphanumeric)
