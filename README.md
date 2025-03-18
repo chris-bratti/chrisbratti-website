@@ -1,3 +1,3 @@
 # ChrisBratti.com
 
-Written in Rust with the Leptos framework
+A full-stack resume website, written in Rust with the Leptos framework
