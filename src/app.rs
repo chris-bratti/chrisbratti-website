@@ -7,12 +7,9 @@ use leptos_router::{components::*, path};
 
 #[component]
 pub fn App() -> impl IntoView {
-    // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/chrisbratti-website.css" />
 
         <Stylesheet
@@ -20,10 +17,8 @@ pub fn App() -> impl IntoView {
             href="https://fonts.googleapis.com/icon?family=Material+Icons"
         />
 
-        // sets the document title
         <Title text="Chris Bratti" />
 
-        // content for this welcome page
         <Router>
             <main>
                 <Routes fallback=move || "Not found.">
@@ -37,14 +32,18 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn DetailContainer(
-    title: String,
+    title: &'static str,
     children: Children,
     #[prop(optional)] open: bool,
 ) -> impl IntoView {
     view! {
         <details class="expandable-card" open=open>
             <summary>{title}</summary>
-            <div class="card-content">{children()}</div>
+            <div class="card-content">
+                <div class="sub-card-container" style="margin: 0px; padding: 5px">
+                    {children()}
+                </div>
+            </div>
         </details>
     }
 }
@@ -55,42 +54,32 @@ fn AboutContainer() -> impl IntoView {
         <div class="main-container">
             <div class="card-title">"About Me"</div>
             <div class="card">
-                <DetailContainer title="Hi there!".to_owned() open=true>
-                    <div class="sub-card-container">
-                        <div class="card-container">
-                            <div class="experience-card" style="text-align:center">
-                                <h4>
-                                    "My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
-                                    I bring extensive experience developing RESTful APIs, test automation, and managing deployment pipelines.
-                                    I'm known for clear communication, a proven track record of delivering results, and a passion for solving complex problems.
-                                    "
-                                </h4>
-                            </div>
+                <DetailContainer title="Hi there!" open=true>
+                    <div class="card-container">
+                        <div class="experience-card" style="text-align:center">
+                            <h4>
+                                "My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
+                                I bring extensive experience developing RESTful APIs, test automation, and managing deployment pipelines.
+                                I'm known for clear communication, a proven track record of delivering results, and a passion for solving complex problems.
+                                "
+                            </h4>
                         </div>
                     </div>
                 </DetailContainer>
-                <DetailContainer title="Experience".to_owned()>
-                    <div class="sub-card-container">
-                        <ExperienceDetails />
-                    </div>
+                <DetailContainer title="Experience">
+                    <ExperienceDetails />
                 </DetailContainer>
 
-                <DetailContainer title="Skills".to_owned()>
-                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
-                        <SkillsDetails />
-                    </div>
+                <DetailContainer title="Skills">
+                    <SkillsDetails />
                 </DetailContainer>
 
-                <DetailContainer title="Projects".to_owned()>
-                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
-                        <ProjectsDetails />
-                    </div>
+                <DetailContainer title="Projects">
+                    <ProjectsDetails />
                 </DetailContainer>
 
-                <DetailContainer title="Contact Me".to_owned() open=true>
-                    <div class="sub-card-container" style="margin: 0px; padding: 5px">
-                        <ContactDetails />
-                    </div>
+                <DetailContainer title="Contact Me" open=true>
+                    <ContactDetails />
                 </DetailContainer>
             </div>
         </div>
@@ -211,37 +200,29 @@ fn ExperienceDetails() -> impl IntoView {
                     "Software Engineer, Senior Consultant [Aug 2021 - Present]"
                 </span>
             </h4>
-            <ul class="modern-list">
-                <li>"Develop and maintain suite of Spring Boot RESTful APIs"</li>
-                <li>"Lead functionality implementation and project architecture planning"</li>
-                <li>
-                    "Collaborate with Scrum team to deliver fully-tested, production ready solutions"
-                </li>
-                <li>
-                    "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage"
-                </li>
-                <li>"Deploy applications into Highly-Available EKS Kubernetes environment"</li>
-                <li>
-                    "Automate workflows and processes by building tooling with Bash, Rust, and Python"
-                </li>
-                <li>"Mentor junior engineers on product expertise and coding standards"</li>
-            </ul>
+            <ModernList items=vec![
+                "Develop and maintain suite of Spring Boot RESTful APIs",
+                "Lead functionality implementation and project architecture planning",
+                "Collaborate with Scrum team to deliver fully-tested, production ready solutions",
+                "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage",
+                "Deploy applications into Highly-Available EKS Kubernetes environment",
+                "Automate workflows and processes by building tooling with Bash, Rust, and Python",
+                "Mentor junior engineers on product expertise and coding standards",
+            ] />
         </div>
         <div class="experience-card">
             <div class="experience-card-title">"The Hartford"</div>
             <h4>
                 <span class="text-italic">"Associate Software Engineer [Jan 2019 - Aug 2021]"</span>
             </h4>
-            <ul class="modern-list">
-                <li>"Supported the development of PolicyCenter, a core insurance platform"</li>
-                <li>
-                    "Developed Python scripts to automate error detection and improve workflows"
-                </li>
-                <li>"Spearheaded migration of legacy SOAP services to modern RESTful APIs"</li>
-                <li>"Integrated PolicyCenter with other applications within the Hartford"</li>
-                <li>"Automated API testing using the Karate framework"</li>
-                <li>"Designed and optimized reusable SQL queries for ad hoc business needs"</li>
-            </ul>
+            <ModernList items=vec![
+                "Supported the development of PolicyCenter, a core insurance platform",
+                "Developed Python scripts to automate error detection and improve workflows",
+                "Spearheaded migration of legacy SOAP services to modern RESTful APIs",
+                "Integrated PolicyCenter with other applications within the Hartford",
+                "Automated API testing using the Karate framework",
+                "Designed and optimized reusable SQL queries for ad hoc business needs",
+            ] />
         </div>
         <div class="experience-card" style="text-align: center">
             {move || Suspend::new(async move {
@@ -257,14 +238,21 @@ fn ExperienceDetails() -> impl IntoView {
 }
 
 #[component]
+fn ModernList(items: Vec<&'static str>) -> impl IntoView {
+    view! {
+        <ul class="modern-list">
+            {items.into_iter().map(|item| view! { <li>{item}</li> }).collect_view()}
+        </ul>
+    }
+}
+
+#[component]
 fn SkillComponent(title: &'static str, skills: Vec<&'static str>) -> impl IntoView {
     view! {
         <div class="experience-card">
             <div class="experience-card-title">{title}</div>
             <ul class="modern-list">
-                {skills.into_iter()
-                    .map(|skill| view! { <li>{skill}</li>})
-                    .collect_view()}
+                <ModernList items=skills />
             </ul>
         </div>
     }
@@ -272,173 +260,148 @@ fn SkillComponent(title: &'static str, skills: Vec<&'static str>) -> impl IntoVi
 
 #[component]
 fn SkillsDetails() -> impl IntoView {
-    let langues = vec!["Java", "Rust", "Bash", "Python", "SQL"];
-    let frameworks = vec![
-        "Spring Boot",
-        "jUnit",
-        "AssertJ",
-        "Mockito",
-        "Leptos",
-        "Actix Web",
-        "Helm",
-        "OAuth",
-    ];
-    let devops = vec![
-        "Kubernetes",
-        "Docker",
-        "AWS",
-        "Jenkins",
-        "ArgoCD",
-        "Hashicorp",
-    ];
-    let dev_tools = vec![
-        "Git",
-        "GitHub",
-        "Swagger / OpenAPI",
-        "Postman",
-        "Bruno",
-        "IntelliJ",
-    ];
     view! {
-        <SkillComponent title="Languages" skills=langues/>
-        <SkillComponent title="Tools and Frameworks" skills=frameworks/>
-        <SkillComponent title="DevOps and Deployment" skills=devops/>
-        <SkillComponent title="Development Tools" skills=dev_tools/>
+        <SkillComponent title="Languages" skills=vec!["Java", "Rust", "Bash", "Python", "SQL"] />
+        <SkillComponent
+            title="Tools and Frameworks"
+            skills=vec![
+                "Spring Boot",
+                "jUnit",
+                "AssertJ",
+                "Mockito",
+                "Leptos",
+                "Actix Web",
+                "Helm",
+                "OAuth",
+            ]
+        />
+        <SkillComponent
+            title="DevOps and Deployment"
+            skills=vec!["Kubernetes", "Docker", "AWS", "Jenkins", "ArgoCD", "Hashicorp"]
+        />
+        <SkillComponent
+            title="Development Tools"
+            skills=vec!["Git", "GitHub", "Swagger / OpenAPI", "Postman", "Bruno", "IntelliJ"]
+        />
     }
 }
 
 #[component]
-fn GitHubLink(project_name: String, text: Option<String>) -> impl IntoView {
+fn GitHubLink(project_name: &'static str, text: Option<&'static str>) -> impl IntoView {
     view! {
         <a
-                class="btn github-link"
-                target="_blank"
-                rel="noopener noreferrer"
-                href={format!("https://github.com/chris-bratti/{}", project_name)}
-            >
-            {
-                if text.is_none(){
-                    "View on GitHub!".to_string()
-                }else{
-                    text.unwrap().to_string()
-                }
-            } <img src="/assets/github-mark.png" class="github-icon"/>
-            </a>
+            class="btn github-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            href=format!("https://github.com/chris-bratti/{}", project_name)
+        >
+            {if text.is_none() { "View on GitHub!".to_string() } else { text.unwrap().to_string() }}
+            <img src="/assets/github-mark.png" class="github-icon" />
+        </a>
+    }
+}
+
+#[component]
+fn Project(
+    title: &'static str,
+    overview: &'static str,
+    desc: &'static str,
+    features: Vec<&'static str>,
+    technologies: Vec<&'static str>,
+    project_name: &'static str,
+    link_text: Option<&'static str>,
+) -> impl IntoView {
+    view! {
+        <div class="experience-card">
+            <div class="experience-card-title">{title}</div>
+            <span class="text-italic">{overview}</span>
+            <h5>{desc}</h5>
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Features"</span>
+            </h4>
+            <ModernList items=features />
+            <h4 style="margin-top: 15px">
+                <span class="custom-text-accent">"Technologies/skills used"</span>
+            </h4>
+            <ModernList items=technologies />
+            <GitHubLink project_name=project_name text=link_text />
+        </div>
     }
 }
 
 #[component]
 fn ProjectsDetails() -> impl IntoView {
     view! {
-        <div class="experience-card">
-            <div class="experience-card-title">"Auth-server"</div>
-            <span class="text-italic">
-                    "A full stack Rust OAuth server written with the Leptos framework"
-            </span>
-            <h5>
-                "
-                This project initially began as "
-                <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href="https://github.com/chris-bratti/auth_leptos"
-                >
-                    "auth_leptos"
-                </a>", a full stack user authentication application.
-                What started as a desire to get more hands-on experience with authentication systems has turned into a full OAuth server. The included docker-compose.yaml file makes it
-                easy to deploy into a Docker or Kubernetes environment. Integrating new OAuth clients is simple and secure - clients can sign up using the REST endpoint and admins can
-                approve or deny new clients in the Admin Dashboard.
-                "
-            </h5>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Features"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>
-                    "Full OAuth Authorization Code flow - easy to integrate and protect applications"
-                </li>
-                <li>"Secure user signup, login, and password reset"</li>
-                <li>"Persistent user session storage with actix_sessions"</li>
-                <li>"Two factor authentication with Time-Based One Time Passwords (TOTP)"</li>
-                <li>"Admin Dashboard"</li>
-                <li>"Database hashing and encryption"</li>
-                <li>"Redis integration for application caching"</li>
-            </ul>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Technologies/skills used"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>"Rust, Leptos, Actix Web"</li>
-                <li>"WASM, HTML, CSS"</li>
-                <li>"Diesel, Postgres, Redis"</li>
-                <li>"Argon2 hashing, database encryption"</li>
-                <li>"Docker"</li>
-            </ul>
-            <GitHubLink project_name="auth-server".to_string() text=None/>
-        </div>
-        <div class="experience-card">
-            <div class="experience-card-title">"Resume Website"</div>
-            <span class="text-italic">
-                    "Full stack resume and portfolio site (you're using it right now!)"
-            </span>
-            <h5>
-                "
-                The repository for this site: a full-stack portfolio and resume website written in Rust. With a WASM-compiled front-end and an Actix-Web server, this site is 'blazingly fast'
-                with minimal overhead.
-                "
-            </h5>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Features"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>"Eye-catching UI designed with Leptos"</li>
-                <li>"Fast and lightweight back-end written in Rust with Leptos and Actix"</li>
-                <li>"Secure SMTP communication with TLS"</li>
-                <li>"Protected download links"</li>
-            </ul>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Technologies/skills used"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>"Rust, Leptos, Actix Web"</li>
-                <li>"WASM, HTML, CSS"</li>
-                <li>"Docker"</li>
-            </ul>
-            <GitHubLink project_name="chrisbratti-website".to_string() text=None/>
-        </div>
-        <div class="experience-card">
-            <div class="experience-card-title">"Wireguard-init"</div>
-            <span class="text-italic">
-                    "Script to automate the creation of a WireGuard server and peers"
-            </span>
-            <h5>
-                "A lightweight and easy-to-use script to automate initializing, configuring, and deploying a WireGuard server and peers. I've developed and used this script to deploy several WireGuard servers to
-                enable secure remote communication with my personal network when I'm away from home."
-            </h5>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Features"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>"Creates a secure peer-to-peer VPN network in just a few minutes"</li>
-                <li>
-                    "Ability to customize IP address subnet, listening port, DNS server addresses, and more"
-                </li>
-                <li>"Automates peer/client setup"</li>
-                <li>"Generates QR codes for configuring mobile peers"</li>
-                <li>"Lightweight"</li>
-            </ul>
-            <h4 style="margin-top: 15px">
-                <span class="custom-text-accent">"Technologies/skills used"</span>
-            </h4>
-            <ul class="modern-list" style="font-size: .85em">
-                <li>"Bash"</li>
-                <li>"Networking"</li>
-                <li>"Routing"</li>
-            </ul>
-            <GitHubLink project_name="wireguard-init".to_string() text=None/>
-        </div>
+        <Project
+            title="Auth-server"
+            overview="A full stack Rust OAuth server written with the Leptos framework"
+            desc="
+            A fully features OAuth server written in Rust. The included docker-compose.yaml file makes it
+            easy to deploy into a Docker or Kubernetes environment. Integrating new OAuth clients is simple and secure - clients can sign up using the REST endpoint and admins can
+            approve or deny new clients in the Admin Dashboard.
+            "
+            features=vec![
+                "Full OAuth Authorization Code flow - easy to integrate and protect applications",
+                "Secure user signup, login, and password reset",
+                "Persistent user session storage with actix_sessions",
+                "Two factor authentication with Time-Based One Time Passwords (TOTP)",
+                "Admin Dashboard",
+                "Database hashing and encryption",
+                "Redis integration for application caching",
+            ]
+            technologies=vec![
+                "Rust, Leptos, Actix Web",
+                "WASM, HTML, CSS",
+                "Diesel, Postgres, Redis",
+                "Argon2 hashing, database encryption",
+                "Docker",
+            ]
+            project_name="auth-server"
+            link_text=None
+        />
+
+        <Project
+            title="Resume Website"
+            overview="Full stack resume and portfolio site (you're using it right now!)"
+            desc="
+            The repository for this site: a full-stack portfolio and resume website written in Rust. With a WASM-compiled front-end and an Actix-Web server, this site is 'blazingly fast'
+            with minimal overhead.
+            "
+            features=vec![
+                "Eye-catching UI designed with Leptos",
+                "Fast and lightweight back-end written in Rust with Leptos and Actix",
+                "Secure SMTP communication with TLS",
+                "Protected download links",
+            ]
+            technologies=vec![
+                "Rust, Leptos, Actix Web",
+                "WASM, HTML, CSS",
+                "Diesel, Postgres, Redis",
+                "Docker",
+            ]
+            project_name="chrisbratti-website"
+            link_text=None
+        />
+
+        <Project
+            title="Wireguard-init"
+            overview="Script to automate the creation of a WireGuard server and peers"
+            desc="
+            A lightweight and easy-to-use script to automate initializing, configuring, and deploying a WireGuard server and peers. I've developed and used this script to deploy several WireGuard servers to
+            enable secure remote communication with my personal network when I'm away from home."
+            features=vec![
+                "Creates a secure peer-to-peer VPN network in just a few minutes",
+                "Ability to customize IP address subnet, listening port, DNS server addresses, and more",
+                "Automates peer/client setup",
+                "Generates QR codes for configuring mobile peers",
+                "Lightweight",
+            ]
+            technologies=vec!["Bash", "Networking", "Routing"]
+            project_name="wireguard-init"
+            link_text=None
+        />
         <div class="experience-card" style="text-align: center">
-            <GitHubLink project_name="".to_string() text=Some("Check out the rest of my projects on GitHub!".to_string())/>
+            <GitHubLink project_name="" text=Some("Check out the rest of my projects on GitHub!") />
         </div>
     }
 }
@@ -457,11 +420,15 @@ fn ContactDetails() -> impl IntoView {
                     let info = info_result.await.unwrap();
                     view! {
                         <p>
-                            <span class="custom-text-accent"><i class="material-icons in-line-icon">mail</i></span>
+                            <span class="custom-text-accent">
+                                <i class="material-icons in-line-icon">mail</i>
+                            </span>
                             {format!("{}", info.email)}
                         </p>
                         <p>
-                            <span class="custom-text-accent"><i class="material-icons in-line-icon">account_circle</i></span>
+                            <span class="custom-text-accent">
+                                <i class="material-icons in-line-icon">account_circle</i>
+                            </span>
                             {format!("{}", info.linkedin)}
                         </p>
                     }
