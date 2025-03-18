@@ -310,6 +310,7 @@ fn Project(
     technologies: Vec<&'static str>,
     project_name: &'static str,
     link_text: Option<&'static str>,
+    #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
     view! {
         <div class="experience-card">
@@ -324,6 +325,11 @@ fn Project(
                 <span class="custom-text-accent">"Technologies/skills used"</span>
             </h4>
             <ModernList items=technologies />
+            {if let Some(child_content) = children{
+                child_content()
+            }else{
+                ().into_any()
+            }}
             <GitHubLink project_name=project_name text=link_text />
         </div>
     }
@@ -358,7 +364,17 @@ fn ProjectsDetails() -> impl IntoView {
             ]
             project_name="auth-server"
             link_text=None
-        />
+        >
+            <a
+                class="btn github-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://login.chrisbratti.com"
+                style="margin-bottom: 15px"
+            >
+                "Check out a live demo of this project!"
+            </a>
+        </Project>
 
         <Project
             title="Resume Website"
