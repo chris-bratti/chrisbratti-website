@@ -31,7 +31,7 @@ cfg_if! {
 
         fn load_certificate() -> Result<Certificate, reqwest::Error> {
             let mut buf = Vec::new();
-            File::open("cert.pem").unwrap().read_to_end(&mut buf).unwrap();
+            File::open("/certs/cert.pem").unwrap().read_to_end(&mut buf).unwrap();
 
             Certificate::from_pem(&buf)
 
