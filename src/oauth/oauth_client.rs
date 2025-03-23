@@ -10,7 +10,6 @@ cfg_if! {
             static ref CLIENT_ID: String = get_env_variable("CLIENT_ID").expect("CLIENT_ID is unset!");
             static ref CLIENT_SECRET: String = get_env_variable("CLIENT_SECRET").expect("CLIENT_SECRET IS UNSET!");
             static ref CLIENT: Client = reqwest::Client::builder().danger_accept_invalid_certs(true).danger_accept_invalid_hostnames(true).build().unwrap();
-            static ref SITE_URL: String = get_env_variable("SITE_URL").expect("SITE_URL is not set!");
         }
         use actix_web::web;
         use lazy_static::lazy_static;
