@@ -14,9 +14,16 @@ cfg_if! {
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    use std::time::Duration;
+
     use actix_files::Files;
-    use actix_web::*;
-    use chrisbratti_website::{app::*, server_functions::get_env_variable, PersonalInfo, SmtpInfo};
+    use actix_identity::IdentityMiddleware;
+    use actix_session::{config::PersistentSession, storage::RedisSessionStore, SessionMiddleware};
+    use actix_web::{cookie::Key, *};
+    use chrisbratti_website::{
+        app::*, oauth::oauth_client::handle_oauth_response, server_functions::get_env_variable,
+        PersonalInfo, SmtpInfo,
+    };
     use leptos::config::get_configuration;
     use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
@@ -34,6 +41,16 @@ async fn main() -> std::io::Result<()> {
     let redis_client =
         web::Data::new(redis::Client::open(redis_connection_string.clone()).unwrap());
 
+    let secret_key = Key::from(
+        get_env_variable("REDIS_KEY")
+            .expect("REDIS_KEY not set!")
+            .as_bytes(),
+    );
+
+    let store = RedisSessionStore::new(redis_connection_string)
+        .await
+        .unwrap();
+
     HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
@@ -50,6 +67,7 @@ async fn main() -> std::io::Result<()> {
             // serve the favicon from /favicon.ico
             .service(favicon)
             .service(download_pdf)
+            .route("/auth", web::get().to(handle_oauth_response))
             .leptos_routes(routes, {
                 let leptos_options = leptos_options.clone();
                 move || {
@@ -77,6 +95,21 @@ async fn main() -> std::io::Result<()> {
             .app_data(personal_info.clone())
             .app_data(smtp_info.clone())
             .app_data(redis_client.clone())
+            .wrap(
+                IdentityMiddleware::builder()
+                    .login_deadline(Some(Duration::new(259200, 0)))
+                    .build(),
+            )
+            // Uses Session middleware for all Session info, uses Redis as a backend
+            .wrap(
+                SessionMiddleware::builder(store.clone(), secret_key.clone())
+                    .cookie_secure(true)
+                    .session_lifecycle(
+                        PersistentSession::default()
+                            .session_ttl(actix_web::cookie::time::Duration::weeks(2)),
+                    )
+                    .build(),
+            )
         //.wrap(middleware::Compress::default())
     })
     .bind("0.0.0.0:3000")?

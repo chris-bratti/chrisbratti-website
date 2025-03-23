@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use crate::oauth::oauth_client::*;
 use crate::server_functions::*;
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
@@ -22,7 +23,7 @@ pub fn App() -> impl IntoView {
         <Router>
             <main>
                 <Routes fallback=move || "Not found.">
-                    <Route path=path!("/") view=TestHomePage />
+                    <Route path=path!("/") view=HomePage />
                     <Route path=path!("/*any") view=NotFound />
                 </Routes>
             </main>
@@ -50,10 +51,39 @@ fn DetailContainer(
 
 #[component]
 fn AboutContainer() -> impl IntoView {
+    let logout = ServerAction::<Logout>::new();
+    let get_user = Resource::new_blocking(move || (logout.version().get()), |_| get_user_info());
+    let oauth_redirect = ServerAction::<OauthRedirect>::new();
+    let profile_redirect = ServerAction::<ProfileRedirect>::new();
+
     view! {
         <div class="main-container">
-            <div class="card-title">"About Me"</div>
             <div class="card">
+                <ul class="nav">
+                    <li class="dropdown">
+                        <Suspense fallback=|| (view! {<a class="dropbtn">"Login"</a>})>
+                            {move || Suspend::new(async move {
+                                let user_info = RwSignal::new(get_user.await.unwrap());
+                                if user_info.get().is_some(){
+                                    view! {
+                                        <a class="dropbtn">{user_info.get().unwrap().first_name}</a>
+                                        <ul class="dropdown-content">
+                                            <li><a on:click={move |_| {profile_redirect.dispatch(ProfileRedirect {});}}>"Profile"</a></li>
+                                            <li><a on:click={move |_| {logout.dispatch(Logout {}); }}>"Sign out"</a></li>
+                                        </ul>
+                                    }.into_any()
+                                }else{
+                                    view! {
+                                        <a on:click=move |_| {
+                                            oauth_redirect.dispatch(OauthRedirect {});
+                                        } class="dropbtn">"Login"</a>
+                                    }.into_any()
+                                }
+                            })}
+                        </Suspense>
+                    </li>
+                    <div class="card-title">"About Me"</div>
+                </ul>
                 <DetailContainer title="Hi there!" open=true>
                     <div class="card-container">
                         <div class="experience-card" style="text-align:center">
@@ -87,15 +117,15 @@ fn AboutContainer() -> impl IntoView {
 }
 
 #[component]
-fn TestHomePage() -> impl IntoView {
+fn HomePage() -> impl IntoView {
     view! {
         <div class="home-page">
             <div class="parallax">
                 <div class="blurred-text">
                     <h1 class="extra-large">
-                        "Hi, I'm "<span class="custom-text-accent">"Chris Bratti."</span>
+                        "Hi, I'm "<span class="title-accent">"Chris Bratti."</span>
                     </h1>
-                    <h4 class="subtitle">"${ s o f t w a r e _ e n g i n e e r }"</h4>
+                    <h4 class="subtitle" style="letter-spacing: 4px">"${software_engineer}"</h4>
                 </div>
                 <div class="down-arrow">"⇓"</div>
             </div>
@@ -197,16 +227,17 @@ fn ExperienceDetails() -> impl IntoView {
             <div class="experience-card-title">"Booz Allen Hamilton"</div>
             <h4>
                 <span class="text-italic">
-                    "Software Engineer, Senior Consultant [Aug 2021 - Present]"
+                    "Senior Software Engineer [Aug 2021 - Present]"
                 </span>
             </h4>
             <ModernList items=vec![
-                "Develop and maintain suite of Spring Boot RESTful APIs",
+                "Develop and maintain suite of Spring Boot APIs, optimizing performance and scalability",
                 "Lead functionality implementation and project architecture planning",
-                "Collaborate with Scrum team to deliver fully-tested, production ready solutions",
+                "Redesign high-traffic API endpoints and data layer to improve usability and performance",
                 "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage",
-                "Deploy applications into Highly-Available EKS Kubernetes environment",
-                "Automate workflows and processes by building tooling with Bash, Rust, and Python",
+                "Deploy applications into a Highly-Available EKS Kubernetes platform, maintaining 98%+ uptime",
+                "Securely manage injecting secrets into Kubernetes applications with HashiCorp Vault",
+                "Spearhead automated load testing efforts to ensure API durability and SLA compliance (<2% error rate)",
                 "Mentor junior engineers on product expertise and coding standards",
             ] />
         </div>
@@ -216,12 +247,12 @@ fn ExperienceDetails() -> impl IntoView {
                 <span class="text-italic">"Associate Software Engineer [Jan 2019 - Aug 2021]"</span>
             </h4>
             <ModernList items=vec![
-                "Supported the development of PolicyCenter, a core insurance platform",
-                "Developed Python scripts to automate error detection and improve workflows",
-                "Spearheaded migration of legacy SOAP services to modern RESTful APIs",
-                "Integrated PolicyCenter with other applications within the Hartford",
-                "Automated API testing using the Karate framework",
-                "Designed and optimized reusable SQL queries for ad hoc business needs",
+                "Developed core functionality for an enterprise insurance platform",
+                "Developed Python scripts to automate error detection and streamline workflows",
+                "Migrated legacy SOAP services to RESTful APIs, improving integration and maintainability",
+                "Integrated platform with other internal systems, enhancing data exchange",
+                "Automated API testing using the Karate framework to reduce manual testing effort",
+                "Designed and optimized reusable SQL queries to provide important data insights",
             ] />
         </div>
         <div class="experience-card" style="text-align: center">
@@ -325,11 +356,7 @@ fn Project(
                 <span class="custom-text-accent">"Technologies/skills used"</span>
             </h4>
             <ModernList items=technologies />
-            {if let Some(child_content) = children{
-                child_content()
-            }else{
-                ().into_any()
-            }}
+            {if let Some(child_content) = children { child_content() } else { ().into_any() }}
             <GitHubLink project_name=project_name text=link_text />
         </div>
     }
