@@ -1,15 +1,19 @@
+use std::{fs::File, io::Read};
+
 use cfg_if::cfg_if;
 use leptos::{prelude::ServerFnError, server};
 
 cfg_if! {
     if #[cfg(feature = "ssr")] {
         use crate::server_functions::{generate_token, get_env_variable};
+        use reqwest::Certificate;
 
         lazy_static! {
-            static ref OAUTH_URL: String = get_env_variable("OAUTH_URL").expect("OAUTH_URL is unset!");
+            static ref OAUTH_REDIRECT_URL: String = get_env_variable("OAUTH_REDIRECT_URL").expect("OAUTH_REDIRECT_URL is unset!");
+            static ref OAUTH_TOKEN_URL: String = get_env_variable("OAUTH_TOKEN_URL").expect("OAUTH_TOKEN_URL is unset!");
             static ref CLIENT_ID: String = get_env_variable("CLIENT_ID").expect("CLIENT_ID is unset!");
             static ref CLIENT_SECRET: String = get_env_variable("CLIENT_SECRET").expect("CLIENT_SECRET IS UNSET!");
-            static ref CLIENT: Client = reqwest::Client::builder().danger_accept_invalid_certs(true).danger_accept_invalid_hostnames(true).build().unwrap();
+            static ref CLIENT: Client = reqwest::Client::builder().danger_accept_invalid_hostnames(true).add_root_certificate(load_certificate().unwrap()).build().unwrap();
         }
         use actix_web::web;
         use lazy_static::lazy_static;
@@ -24,12 +28,20 @@ cfg_if! {
         use super::SessionData;
         use actix_identity::Identity;
         use actix_web::{HttpMessage, Responder};
+
+        fn load_certificate() -> Result<Certificate, reqwest::Error> {
+            let mut buf = Vec::new();
+            File::open("cert.pem").unwrap().read_to_end(&mut buf).unwrap();
+
+            Certificate::from_pem(&buf)
+
+        }
     }
 }
 
 #[server(ProfileRedirect, "/api")]
 pub async fn profile_redirect() -> Result<(), ServerFnError> {
-    leptos_actix::redirect(format!("{}/user", OAUTH_URL.to_string()).as_str());
+    leptos_actix::redirect(format!("{}/user", OAUTH_REDIRECT_URL.to_string()).as_str());
 
     Ok(())
 }
@@ -45,7 +57,7 @@ pub async fn logout() -> Result<(), ServerFnError> {
 pub async fn oauth_redirect() -> Result<(), ServerFnError> {
     let user: Option<Identity> = extract().await?;
     if let Some(_) = user {
-        leptos_actix::redirect(format!("{}/user", OAUTH_URL.to_string()).as_str());
+        leptos_actix::redirect(format!("{}/user", OAUTH_REDIRECT_URL.to_string()).as_str());
         return Ok(());
     }
     let redis_client: web::Data<RedisClient> = extract().await?;
@@ -68,7 +80,7 @@ pub async fn oauth_redirect() -> Result<(), ServerFnError> {
     leptos_actix::redirect(
         format!(
             "{}/login?client_id={}&state={}",
-            OAUTH_URL.to_string(),
+            OAUTH_REDIRECT_URL.to_string(),
             CLIENT_ID.to_string(),
             state
         )
@@ -113,8 +125,14 @@ pub async fn handle_oauth_response(
         ("authorization_code", &code),
     ];
 
-    let token_response = request_access_token(&params)
-        .await
+    let token_response = request_access_token(&params).await;
+
+    if token_response.is_err() {
+        println!("{:#?}", token_response.err().unwrap().to_string());
+        panic!("Uh oh!");
+    }
+
+    let token_response = token_response
         .map_err(|_| {
             HttpResponse::InternalServerError().body("Error querying authentication server")
         })
@@ -141,16 +159,21 @@ pub async fn handle_oauth_response(
 }
 
 #[cfg(feature = "ssr")]
-async fn request_access_token(params: &[(&str, &str)]) -> Result<TokenResponse, reqwest::Error> {
+async fn request_access_token(params: &[(&str, &str)]) -> Result<TokenResponse, serde_json::Error> {
     let res = CLIENT
-        .post(format!("{}/v0/oauth/token", OAUTH_URL.to_string()))
+        .post(format!("{}/v0/oauth/token", OAUTH_TOKEN_URL.to_string()))
         .basic_auth(CLIENT_ID.to_string(), Some(CLIENT_SECRET.to_string()))
         .header("Content-Type", "application/x-www-form-urlencoded")
         .form(&params)
         .send()
-        .await?;
+        .await
+        .unwrap();
 
-    res.json::<TokenResponse>().await
+    let response_body = res.text().await.unwrap();
+
+    println!("{}", response_body);
+
+    serde_json::from_str::<TokenResponse>(&response_body)
 }
 
 #[cfg(feature = "ssr")]
@@ -201,7 +224,7 @@ pub async fn call_user_endpoint(
     let res = CLIENT
         .get(format!(
             "{}/v0/users/info?username={}",
-            OAUTH_URL.to_string(),
+            OAUTH_TOKEN_URL.to_string(),
             &session_data.username
         ))
         .bearer_auth(decrypt_string(&session_data.access_token).unwrap())
