@@ -4,6 +4,7 @@ $title-color: #4c5533;
 $body-text-color: #d1d6cc;
 $summary-text-color: #bfc8a4;
 $card-color: #252a29;
+.title-accent{color: #bfc8a4;}
 
 .text-italic{
 	font-style: italic;
@@ -17,6 +18,103 @@ $card-color: #252a29;
 }
 
 
+ul.nav {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background-color: $card-color;
+	position: sticky;
+	top: 0;
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	position: sticky;
+	height: 60px; 
+}
+
+ul.nav li {
+	margin-left: 20px;
+	
+}
+
+ul.nav li a {
+	display: block;
+	color: $body-text-color;
+	text-align: center;
+	padding: 20px;
+	text-decoration: none;
+	font-size: 1.5em;
+	font-family: 'Abril Fatface', serif;
+}
+
+.card-title {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	font-size: 2.5em;
+	font-family: 'Abril Fatface', serif;
+	color: $title-color;
+	white-space: nowrap;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    display: block;
+    color: $body-text-color;
+    padding: 10px;
+    text-decoration: none;
+    font-size: 1.5em;
+    font-family: 'Abril Fatface', serif;
+	cursor: pointer;
+}
+
+.dropbtn:hover {
+	background-color: $text-accent
+}
+
+.dropdown-content {
+    display: none;
+	list-style: none;
+    position: absolute;
+    background-color: $card-color;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    left: 0;
+    top: 100%;
+}
+
+.dropdown-content li {
+	list-style: none;
+    margin: 0;
+    width: 100%;
+	cursor: pointer;
+}
+
+.dropdown-content li a {
+	list-style: none;
+    display: block;
+    color: $body-text-color;
+    padding: 10px;
+    text-align: left;
+    text-decoration: none;
+	cursor: pointer;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content li a:hover {
+    background-color: $text-accent;
+}
+
+  
 * {
 	margin: 0;
 	padding: 0;
@@ -176,13 +274,6 @@ body {
   	backdrop-filter: blur(50px);
 }
 
-.card-title{
-	margin-bottom: 10px;
-	font-size: 2.5em;
-	font-family: 'Abril Fatface', serif;
-	color: $title-color;
-}
-
 .section-title{
 	margin-bottom: 5px;
 	font-size: 2.0em;
@@ -306,6 +397,7 @@ input:invalid {
 	text-decoration: none;
 	border-radius: 4px;
 	color: $body-text-color;
+	cursor: pointer;
 }
 .btn:hover {
 	background-color: lighten($title-color, 10%);

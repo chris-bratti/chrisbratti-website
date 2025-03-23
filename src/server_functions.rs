@@ -1,7 +1,7 @@
 use cfg_if::cfg_if;
 use leptos::{prelude::ServerFnError, server};
 
-use crate::{PersonalInfo, SmtpInfo};
+use crate::{PersonalInfo, UserInfo};
 
 // Backend dependencies and functions
 cfg_if! {
@@ -19,6 +19,19 @@ cfg_if! {
         use leptos_actix::extract;
         use redis::Client;
         use redis::Commands;
+        use aes_gcm::{
+            Aes256Gcm, Key, Nonce,
+            aead::{Aead, AeadCore, KeyInit, OsRng},
+        };
+        use actix_identity::Identity;
+        use std::time::{SystemTime, UNIX_EPOCH};
+        use crate::oauth::{oauth_client::call_user_endpoint, SessionData};
+        use crate::SmtpInfo;
+
+        use lazy_static::lazy_static;
+        lazy_static!{
+            static ref ENCRYPTION_KEY: String = get_env_variable("ENCRYPTION_KEY").expect("ENCRYPTION_KEY not set!");
+        }
 
 
         use actix_web::Result;
@@ -57,6 +70,42 @@ cfg_if! {
                 .collect();
 
             generated_token
+        }
+
+        pub fn encrypt_string(
+            data: &String,
+        ) -> Result<String, aes_gcm::Error> {
+            let key = Key::<Aes256Gcm>::from_slice(&ENCRYPTION_KEY.as_bytes());
+
+            let cipher = Aes256Gcm::new(&key);
+            let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+            let ciphertext = cipher.encrypt(&nonce, data.as_bytes())?;
+
+            let mut encrypted_data: Vec<u8> = nonce.to_vec();
+            encrypted_data.extend_from_slice(&ciphertext);
+
+            let output = hex::encode(encrypted_data);
+            Ok(output)
+        }
+
+        pub fn decrypt_string(
+            encrypted: &String,
+        ) -> Result<String, aes_gcm::Error> {
+            let encrypted_data = hex::decode(encrypted).expect("failed to decode hex string into vec");
+
+            let key = Key::<Aes256Gcm>::from_slice(ENCRYPTION_KEY.as_bytes());
+
+            // 12 digit nonce is prepended to encrypted data
+            let (nonce_arr, ciphered_data) = encrypted_data.split_at(12);
+            let nonce = Nonce::from_slice(nonce_arr);
+
+            let cipher = Aes256Gcm::new(key);
+
+            let plaintext = cipher
+                .decrypt(nonce, ciphered_data)
+                .expect("failed to decrypt data");
+
+            Ok(String::from_utf8(plaintext).expect("failed to convert vector of bytes to string"))
         }
 
         pub fn generate_message_email(first_name: &String, last_name:  &String, email: &String, message: &String) -> String {
@@ -189,8 +238,6 @@ pub async fn generate_pdf_link() -> Result<String, ServerFnError> {
     let mut con = redis_client.get_connection().unwrap();
     let uuid = generate_token();
 
-    use std::time::{SystemTime, UNIX_EPOCH};
-
     let ttl_seconds = 300;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -204,4 +251,26 @@ pub async fn generate_pdf_link() -> Result<String, ServerFnError> {
 
     let url = format!("/{}/resume.pdf", uuid);
     Ok(url)
+}
+
+#[server]
+pub async fn get_user_info() -> Result<Option<UserInfo>, ServerFnError> {
+    println!("Fetching user session");
+    let redis_client: web::Data<Client> = extract().await?;
+
+    let mut con = redis_client.get_connection().unwrap();
+
+    let user: Option<Identity> = extract().await?;
+
+    if let Some(user) = user {
+        let session_str: String = con.get(user.id().unwrap())?;
+        let session_data: SessionData = serde_json::from_str(&session_str).unwrap();
+
+        let user_info_response = call_user_endpoint(session_data).await?;
+
+        Ok(Some(UserInfo::from(user_info_response.user_data)))
+    } else {
+        println!("No user found");
+        Ok(None)
+    }
 }

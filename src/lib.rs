@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use server_functions::get_env_variable;
 
+pub mod oauth;
+
 pub mod app;
 
 pub mod server_functions;
@@ -35,6 +37,41 @@ impl PersonalInfo {
 pub struct SmtpInfo {
     pub email: String,
     pub key: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UserInfo {
+    pub first_name: String,
+    pub last_name: String,
+    pub username: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct User {
+    pub first_name: String,
+    pub last_name: String,
+    pub username: String,
+    pub verified: bool,
+    pub email: String,
+}
+
+#[cfg(feature = "ssr")]
+impl From<User> for UserInfo {
+    fn from(value: User) -> Self {
+        UserInfo {
+            first_name: value.first_name,
+            last_name: value.last_name,
+            username: value.username,
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize)]
+pub struct UserInfoResponse {
+    pub success: bool,
+    pub user_data: User,
+    pub timestamp: i64,
 }
 
 #[cfg(feature = "ssr")]
