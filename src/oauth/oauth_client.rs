@@ -125,14 +125,8 @@ pub async fn handle_oauth_response(
         ("authorization_code", &code),
     ];
 
-    let token_response = request_access_token(&params).await;
-
-    if token_response.is_err() {
-        println!("{:#?}", token_response.err().unwrap().to_string());
-        panic!("Uh oh!");
-    }
-
-    let token_response = token_response
+    let token_response = request_access_token(&params)
+        .await
         .map_err(|_| {
             HttpResponse::InternalServerError().body("Error querying authentication server")
         })
@@ -159,7 +153,7 @@ pub async fn handle_oauth_response(
 }
 
 #[cfg(feature = "ssr")]
-async fn request_access_token(params: &[(&str, &str)]) -> Result<TokenResponse, serde_json::Error> {
+async fn request_access_token(params: &[(&str, &str)]) -> Result<TokenResponse, reqwest::Error> {
     let res = CLIENT
         .post(format!("{}/v0/oauth/token", OAUTH_TOKEN_URL.to_string()))
         .basic_auth(CLIENT_ID.to_string(), Some(CLIENT_SECRET.to_string()))
@@ -169,11 +163,7 @@ async fn request_access_token(params: &[(&str, &str)]) -> Result<TokenResponse, 
         .await
         .unwrap();
 
-    let response_body = res.text().await.unwrap();
-
-    println!("{}", response_body);
-
-    serde_json::from_str::<TokenResponse>(&response_body)
+    res.json::<TokenResponse>().await
 }
 
 #[cfg(feature = "ssr")]
