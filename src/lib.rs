@@ -92,8 +92,7 @@ impl SmtpInfo {
     }
 }
 
-#[cfg(feature = "ssr")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Resume {
     info: ApplicantInfo,
     skills: Skills,
@@ -102,8 +101,7 @@ pub struct Resume {
     education: Vec<Education>,
 }
 
-#[cfg(feature = "ssr")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Experience {
     company: Option<String>,
     title: Option<String>,
@@ -112,16 +110,14 @@ pub struct Experience {
     desc: Option<Vec<String>>,
 }
 
-#[cfg(feature = "ssr")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Education {
     college: Option<String>,
     degree: Option<String>,
     major: Option<String>,
 }
 
-#[cfg(feature = "ssr")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Skills {
     languages: Option<Vec<String>>,
     frameworks: Option<Vec<String>>,
@@ -130,8 +126,7 @@ pub struct Skills {
     dev_tools: Option<Vec<String>>,
 }
 
-#[cfg(feature = "ssr")]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ApplicantInfo {
     name: Option<String>,
     phone: Option<String>,

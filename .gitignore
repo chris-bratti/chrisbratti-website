@@ -14,3 +14,5 @@ target/
 **.pdf
 
 **.pem
+
+parsed_resume.json

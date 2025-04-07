@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
 
+use std::sync::Arc;
+
 use crate::oauth::oauth_client::*;
-use crate::server_functions::*;
+use crate::{server_functions::*, Resume};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{components::*, path};
@@ -32,6 +34,35 @@ pub fn App() -> impl IntoView {
 }
 
 #[component]
+fn HomePage() -> impl IntoView {
+    let resume_result = Resource::new_blocking(|| (), |_| get_resume_info());
+    view! {
+        <div class="home-page">
+            <div class="parallax">
+                <div class="blurred-text">
+                    <h1 class="extra-large">
+                        "Hi, I'm "<span class="title-accent">"Chris Bratti."</span>
+                    </h1>
+                    <h4 class="subtitle" style="letter-spacing: 4px">"${software_engineer}"</h4>
+                </div>
+                <div class="down-arrow">"⇓"</div>
+            </div>
+            <div class="blurred-backdrop">
+                <Suspense fallback= || view! {<p>"Loading..."</p>}>
+                    {move || Suspend::new(async move {
+                        let resume = resume_result.await.unwrap();
+                        view! {
+                            <AboutContainer resume=resume />
+                        }
+                    })}
+                </Suspense>
+
+            </div>
+        </div>
+    }
+}
+
+#[component]
 fn DetailContainer(
     title: &'static str,
     children: Children,
@@ -50,12 +81,11 @@ fn DetailContainer(
 }
 
 #[component]
-fn AboutContainer() -> impl IntoView {
+fn AboutContainer(resume: Arc<Resume>) -> impl IntoView {
     let logout = ServerAction::<Logout>::new();
     let get_user = Resource::new_blocking(move || (logout.version().get()), |_| get_user_info());
     let oauth_redirect = ServerAction::<OauthRedirect>::new();
     let profile_redirect = ServerAction::<ProfileRedirect>::new();
-
     view! {
         <div class="main-container">
             <div class="card">
@@ -88,16 +118,16 @@ fn AboutContainer() -> impl IntoView {
                     <div class="card-container">
                         <div class="experience-card" style="text-align:center">
                             <h4>
-                                "My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
+                                {"My name is Chris. I am a highly motivated Software Engineer with 6 years of professional experience designing, implementing, and deploying microservices.
                                 I bring extensive experience developing RESTful APIs, test automation, and managing deployment pipelines.
                                 I'm known for clear communication, a proven track record of delivering results, and a passion for solving complex problems.
-                                "
+                                "}
                             </h4>
                         </div>
                     </div>
                 </DetailContainer>
                 <DetailContainer title="Experience">
-                    <ExperienceDetails />
+                    <ExperienceDetails resume=resume.clone() />
                 </DetailContainer>
 
                 <DetailContainer title="Skills">
@@ -114,26 +144,6 @@ fn AboutContainer() -> impl IntoView {
             </div>
         </div>
     }.into_any()
-}
-
-#[component]
-fn HomePage() -> impl IntoView {
-    view! {
-        <div class="home-page">
-            <div class="parallax">
-                <div class="blurred-text">
-                    <h1 class="extra-large">
-                        "Hi, I'm "<span class="title-accent">"Chris Bratti."</span>
-                    </h1>
-                    <h4 class="subtitle" style="letter-spacing: 4px">"${software_engineer}"</h4>
-                </div>
-                <div class="down-arrow">"⇓"</div>
-            </div>
-            <div class="blurred-backdrop">
-                <AboutContainer />
-            </div>
-        </div>
-    }
 }
 
 #[component]
@@ -220,41 +230,32 @@ fn ContactForm() -> impl IntoView {
 }
 
 #[component]
-fn ExperienceDetails() -> impl IntoView {
+fn ExperienceDetails(resume: Arc<Resume>) -> impl IntoView {
     let pdf_link = Resource::new_blocking(|| (), |_| generate_pdf_link());
+
+    let experience_items = resume
+        .experience
+        .iter()
+        .map(|experience_item| {
+            let company = experience_item.company.as_ref().unwrap().clone();
+            let title = experience_item.title.as_ref().unwrap().clone();
+            let duration = experience_item.duration.as_ref().unwrap().clone();
+            let desc = experience_item.desc.as_ref().unwrap().clone();
+            view! {
+                <div class="experience-card">
+                <div class="experience-card-title">{company}</div>
+                <h4>
+                    <span class="text-italic">{format!("{} [{}]", title, duration)}</span>
+                </h4>
+                <ul class="modern-list">
+                    {desc.into_iter().map(|item| view! { <li>{item}</li> }).collect_view()}
+                </ul>
+            </div>
+            }
+        })
+        .collect_view();
     view! {
-        <div class="experience-card">
-            <div class="experience-card-title">"Booz Allen Hamilton"</div>
-            <h4>
-                <span class="text-italic">
-                    "Senior Software Engineer [Aug 2021 - Present]"
-                </span>
-            </h4>
-            <ModernList items=vec![
-                "Develop and maintain suite of Spring Boot APIs, optimizing performance and scalability",
-                "Lead functionality implementation and project architecture planning",
-                "Redesign high-traffic API endpoints and data layer to improve usability and performance",
-                "Apply Test-Driven Development principles using JUnit, maintaining 95%+ code coverage",
-                "Deploy applications into a Highly-Available EKS Kubernetes platform, maintaining 98%+ uptime",
-                "Securely manage injecting secrets into Kubernetes applications with HashiCorp Vault",
-                "Spearhead automated load testing efforts to ensure API durability and SLA compliance (<2% error rate)",
-                "Mentor junior engineers on product expertise and coding standards",
-            ] />
-        </div>
-        <div class="experience-card">
-            <div class="experience-card-title">"The Hartford"</div>
-            <h4>
-                <span class="text-italic">"Associate Software Engineer [Jan 2019 - Aug 2021]"</span>
-            </h4>
-            <ModernList items=vec![
-                "Developed core functionality for an enterprise insurance platform",
-                "Developed Python scripts to automate error detection and streamline workflows",
-                "Migrated legacy SOAP services to RESTful APIs, improving integration and maintainability",
-                "Integrated platform with other internal systems, enhancing data exchange",
-                "Automated API testing using the Karate framework to reduce manual testing effort",
-                "Designed and optimized reusable SQL queries to provide important data insights",
-            ] />
-        </div>
+        {experience_items}
         <div class="experience-card" style="text-align: center">
             {move || Suspend::new(async move {
                 let redirect_link = pdf_link.await.unwrap();

@@ -22,7 +22,8 @@ async fn main() -> std::io::Result<()> {
     use actix_web::{cookie::Key, *};
     use chrisbratti_website::{
         app::*, oauth::oauth_client::handle_oauth_response, routes::resume_routes::upload_resume,
-        server_functions::get_env_variable, PersonalInfo, SmtpInfo,
+        server_functions::get_env_variable, services::resume_parsing_service::load_resume,
+        PersonalInfo, SmtpInfo,
     };
     use leptos::config::get_configuration;
     use leptos::prelude::*;
@@ -33,6 +34,8 @@ async fn main() -> std::io::Result<()> {
     let addr = conf.leptos_options.site_addr;
     let redis_connection_string =
         get_env_variable("REDIS_CONNECTION_STRING").expect("Connection string not set!");
+
+    let resume = web::Data::new(load_resume().await.unwrap());
 
     let personal_info = web::Data::new(PersonalInfo::new());
 
@@ -93,6 +96,7 @@ async fn main() -> std::io::Result<()> {
                 }
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
+            .app_data(resume.clone())
             .app_data(personal_info.clone())
             .app_data(smtp_info.clone())
             .app_data(redis_client.clone())
@@ -160,6 +164,7 @@ pub async fn download_pdf(
         ));
     }
 
+    // Update to resume path var
     let path: PathBuf = format!("/files/ChrisBratti_Resume.pdf").into();
 
     let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {

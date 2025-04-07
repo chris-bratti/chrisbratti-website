@@ -41,12 +41,37 @@ pub async fn parse_resume(file_bytes: Vec<u8>) -> Result<Resume, Box<dyn std::er
     Ok(resume)
 }
 
+// Saves resume response as JSON file. Will probably replace with postgres db later on
+pub async fn save_resume_json(resume: &Resume) -> Result<(), Box<dyn std::error::Error>> {
+    // Overwrites existing parsed_resume.json file
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open("parsed_resume.json")?;
+
+    let resume_json = serde_json::to_string(&resume)?;
+
+    file.write_all(resume_json.as_bytes())?;
+
+    Ok(())
+}
+
+pub async fn load_resume() -> Result<Resume, Box<dyn std::error::Error>> {
+    let resume_string = fs::read_to_string("parsed_resume.json")?;
+
+    let resume = serde_json::from_str::<Resume>(&resume_string)?;
+
+    Ok(resume)
+}
+
 pub async fn update_current_resume(
-    new_resume_bytes: &Vec<u8>,
-) -> Result<(), Box<dyn std::error::Error>> {
+    new_resume_bytes: Vec<u8>,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let curr_resume_path_str = format!("uploads/{}.pdf", RESUME_FILE_NAME.to_string());
     let curr_resume_path: PathBuf = curr_resume_path_str.clone().into();
 
+    // If a resume already exists, copy it to a different name and replace it
     if curr_resume_path.is_file() {
         let creation_date: DateTime<Utc> = curr_resume_path.metadata()?.created()?.into();
         let updated_file_name = format!(
@@ -59,7 +84,8 @@ pub async fn update_current_resume(
                 .replace(".pdf", ""),
             creation_date.format("%d-%m-%Y")
         );
-        println!("Copying file");
+        println!("Backing up exiting resume...");
+        // Backs up resume with creation date appended onto the end
         let backup_name = sanitize_filename::sanitize(updated_file_name);
         let backup_path = PathBuf::from(format!("uploads/{}", backup_name));
         fs::copy(&curr_resume_path, &backup_path)?;
@@ -73,7 +99,7 @@ pub async fn update_current_resume(
         .truncate(true)
         .open(&curr_resume_path_str)?;
 
-    file.write_all(new_resume_bytes)?;
+    file.write_all(new_resume_bytes.as_slice())?;
 
     Ok(())
 }
