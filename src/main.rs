@@ -21,8 +21,8 @@ async fn main() -> std::io::Result<()> {
     use actix_session::{config::PersistentSession, storage::RedisSessionStore, SessionMiddleware};
     use actix_web::{cookie::Key, *};
     use chrisbratti_website::{
-        app::*, oauth::oauth_client::handle_oauth_response, server_functions::get_env_variable,
-        PersonalInfo, SmtpInfo,
+        app::*, oauth::oauth_client::handle_oauth_response, routes::resume_routes::upload_resume,
+        server_functions::get_env_variable, PersonalInfo, SmtpInfo,
     };
     use leptos::config::get_configuration;
     use leptos::prelude::*;
@@ -68,6 +68,7 @@ async fn main() -> std::io::Result<()> {
             .service(favicon)
             .service(download_pdf)
             .route("/auth", web::get().to(handle_oauth_response))
+            .service(upload_resume)
             .leptos_routes(routes, {
                 let leptos_options = leptos_options.clone();
                 move || {

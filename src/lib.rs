@@ -8,6 +8,12 @@ pub mod app;
 
 pub mod server_functions;
 
+#[cfg(feature = "ssr")]
+pub mod routes;
+
+#[cfg(feature = "ssr")]
+pub mod services;
+
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {
@@ -84,4 +90,53 @@ impl SmtpInfo {
             key: smtp_key,
         }
     }
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Resume {
+    info: ApplicantInfo,
+    skills: Skills,
+    overview: String,
+    experience: Vec<Experience>,
+    education: Vec<Education>,
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Experience {
+    company: Option<String>,
+    title: Option<String>,
+    duration: Option<String>,
+    location: Option<String>,
+    desc: Option<Vec<String>>,
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Education {
+    college: Option<String>,
+    degree: Option<String>,
+    major: Option<String>,
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Skills {
+    languages: Option<Vec<String>>,
+    frameworks: Option<Vec<String>>,
+    devops: Option<Vec<String>>,
+    database: Option<Vec<String>>,
+    dev_tools: Option<Vec<String>>,
+}
+
+#[cfg(feature = "ssr")]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ApplicantInfo {
+    name: Option<String>,
+    phone: Option<String>,
+    email: Option<String>,
+    github: Option<String>,
+    linkedin: Option<String>,
+    website: Option<String>,
 }
