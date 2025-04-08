@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use crate::oauth::oauth_client::*;
-use crate::{server_functions::*, Resume};
+use crate::{server_functions::*, PersonalInfo, Resume};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{components::*, path};
@@ -43,17 +43,20 @@ fn HomePage() -> impl IntoView {
                     <h1 class="extra-large">
                         "Hi, I'm "<span class="title-accent">"Chris Bratti."</span>
                     </h1>
-                    <h4 class="subtitle" style="letter-spacing: 4px">"${software_engineer}"</h4>
+                    <h4 class="subtitle" style="letter-spacing: 4px">
+                        "${software_engineer}"
+                    </h4>
                 </div>
                 <div class="down-arrow">"⇓"</div>
             </div>
             <div class="blurred-backdrop">
-                <Suspense fallback= || view! {<p>"Loading..."</p>}>
+                <Suspense fallback=|| {
+                    view! { <p>"Loading..."</p> }
+                }>
                     {move || Suspend::new(async move {
                         let resume = resume_result.await.unwrap();
-                        view! {
-                            <AboutContainer resume=resume />
-                        }
+                        provide_context(resume);
+                        view! { <AboutContainer /> }
                     })}
                 </Suspense>
 
@@ -81,7 +84,7 @@ fn DetailContainer(
 }
 
 #[component]
-fn AboutContainer(resume: Arc<Resume>) -> impl IntoView {
+fn AboutContainer() -> impl IntoView {
     let logout = ServerAction::<Logout>::new();
     let get_user = Resource::new_blocking(move || (logout.version().get()), |_| get_user_info());
     let oauth_redirect = ServerAction::<OauthRedirect>::new();
@@ -91,23 +94,40 @@ fn AboutContainer(resume: Arc<Resume>) -> impl IntoView {
             <div class="card">
                 <ul class="nav">
                     <li class="dropdown">
-                        <Suspense fallback=|| (view! {<a class="dropbtn">"Login"</a>})>
+                        <Suspense fallback=|| {
+                            view! { <a class="dropbtn">"Login"</a> }
+                        }>
                             {move || Suspend::new(async move {
                                 let user_info = RwSignal::new(get_user.await.unwrap());
-                                if user_info.get().is_some(){
+                                if user_info.get().is_some() {
                                     view! {
                                         <a class="dropbtn">{user_info.get().unwrap().first_name}</a>
                                         <ul class="dropdown-content">
-                                            <li><a on:click={move |_| {profile_redirect.dispatch(ProfileRedirect {});}}>"Profile"</a></li>
-                                            <li><a on:click={move |_| {logout.dispatch(Logout {}); }}>"Sign out"</a></li>
+                                            <li>
+                                                <a on:click=move |_| {
+                                                    profile_redirect.dispatch(ProfileRedirect {});
+                                                }>"Profile"</a>
+                                            </li>
+                                            <li>
+                                                <a on:click=move |_| {
+                                                    logout.dispatch(Logout {});
+                                                }>"Sign out"</a>
+                                            </li>
                                         </ul>
-                                    }.into_any()
-                                }else{
+                                    }
+                                        .into_any()
+                                } else {
                                     view! {
-                                        <a on:click=move |_| {
-                                            oauth_redirect.dispatch(OauthRedirect {});
-                                        } class="dropbtn">"Login"</a>
-                                    }.into_any()
+                                        <a
+                                            on:click=move |_| {
+                                                oauth_redirect.dispatch(OauthRedirect {});
+                                            }
+                                            class="dropbtn"
+                                        >
+                                            "Login"
+                                        </a>
+                                    }
+                                        .into_any()
                                 }
                             })}
                         </Suspense>
@@ -127,7 +147,7 @@ fn AboutContainer(resume: Arc<Resume>) -> impl IntoView {
                     </div>
                 </DetailContainer>
                 <DetailContainer title="Experience">
-                    <ExperienceDetails resume=resume.clone() />
+                    <ExperienceDetails />
                 </DetailContainer>
 
                 <DetailContainer title="Skills">
@@ -230,27 +250,30 @@ fn ContactForm() -> impl IntoView {
 }
 
 #[component]
-fn ExperienceDetails(resume: Arc<Resume>) -> impl IntoView {
+fn ExperienceDetails() -> impl IntoView {
+    let resume: Arc<Resume> = expect_context();
     let pdf_link = Resource::new_blocking(|| (), |_| generate_pdf_link());
 
     let experience_items = resume
         .experience
         .iter()
-        .map(|experience_item| {
-            let company = experience_item.company.as_ref().unwrap().clone();
-            let title = experience_item.title.as_ref().unwrap().clone();
-            let duration = experience_item.duration.as_ref().unwrap().clone();
-            let desc = experience_item.desc.as_ref().unwrap().clone();
+        .filter_map(|item| {
+            Some((
+                item.company.as_ref()?,
+                item.title.as_ref()?,
+                item.duration.as_ref()?,
+                item.desc.as_ref()?,
+            ))
+        })
+        .map(|(company, title, duration, desc)| {
             view! {
                 <div class="experience-card">
-                <div class="experience-card-title">{company}</div>
-                <h4>
-                    <span class="text-italic">{format!("{} [{}]", title, duration)}</span>
-                </h4>
-                <ul class="modern-list">
-                    {desc.into_iter().map(|item| view! { <li>{item}</li> }).collect_view()}
-                </ul>
-            </div>
+                    <div class="experience-card-title">{company.clone()}</div>
+                    <h4>
+                        <span class="text-italic">{format!("{} [{}]", title, duration)}</span>
+                    </h4>
+                    <ModernListResume items=&desc />
+                </div>
             }
         })
         .collect_view();
@@ -279,12 +302,21 @@ fn ModernList(items: Vec<&'static str>) -> impl IntoView {
 }
 
 #[component]
-fn SkillComponent(title: &'static str, skills: Vec<&'static str>) -> impl IntoView {
+fn ModernListResume<'a>(items: &'a Vec<String>) -> impl IntoView {
+    view! {
+        <ul class="modern-list">
+            {items.into_iter().map(|item| view! { <li>{(*item).clone()}</li> }).collect_view()}
+        </ul>
+    }
+}
+
+#[component]
+fn SkillItem<'a>(title: &'static str, skills: &'a Vec<String>) -> impl IntoView {
     view! {
         <div class="experience-card">
             <div class="experience-card-title">{title}</div>
             <ul class="modern-list">
-                <ModernList items=skills />
+                <ModernListResume items=skills />
             </ul>
         </div>
     }
@@ -292,29 +324,13 @@ fn SkillComponent(title: &'static str, skills: Vec<&'static str>) -> impl IntoVi
 
 #[component]
 fn SkillsDetails() -> impl IntoView {
+    let resume: Arc<Resume> = expect_context();
     view! {
-        <SkillComponent title="Languages" skills=vec!["Java", "Rust", "Bash", "Python", "SQL"] />
-        <SkillComponent
-            title="Tools and Frameworks"
-            skills=vec![
-                "Spring Boot",
-                "jUnit",
-                "AssertJ",
-                "Mockito",
-                "Leptos",
-                "Actix Web",
-                "Helm",
-                "OAuth",
-            ]
-        />
-        <SkillComponent
-            title="DevOps and Deployment"
-            skills=vec!["Kubernetes", "Docker", "AWS", "Jenkins", "ArgoCD", "Hashicorp"]
-        />
-        <SkillComponent
-            title="Development Tools"
-            skills=vec!["Git", "GitHub", "Swagger / OpenAPI", "Postman", "Bruno", "IntelliJ"]
-        />
+        <SkillItem title="Languages" skills=resume.skills.languages.as_ref().unwrap() />
+        <SkillItem title="Tools and Frameworks" skills=resume.skills.frameworks.as_ref().unwrap() />
+        <SkillItem title="Database" skills=resume.skills.database.as_ref().unwrap() />
+        <SkillItem title="Devops and Deployment" skills=resume.skills.devops.as_ref().unwrap() />
+        <SkillItem title="Development Tools" skills=resume.skills.dev_tools.as_ref().unwrap() />
     }
 }
 
@@ -428,6 +444,31 @@ fn ProjectsDetails() -> impl IntoView {
         />
 
         <Project
+            title="ParseCV"
+            overview="A Machine Learning powered API built with FastAPI to parse and extract information from PDF resumes"
+            desc="
+            A lightweight FastAPI that uses a custom-trained SpaCy NER model to extract structured information from PDF resumes. Trained specifically for Software Engineer resumes, ParseCV can extract 
+            contact info, personal overviews, skills, programming languages, and even job experience information from a resume. In fact, this website uses it! All of the experience and skills information on 
+            this page is populated from ParseCV, making it easy to make updates! The provided repo also contains the resources to automate re-training the NER model.
+            "
+            features=vec![
+                "NER model is specifically trained for Software Engineering resumes",
+                "Able to handle a variety of PDF formats thanks to Apache PDFBox",
+                "Lightweight footprint",
+                "Super fast response times ( > 150ms)"
+            ]
+
+            technologies=vec![
+                "Python, FastAPI",
+                "SpaCy, Machine Learning, Named Entity Recognition (NER), Natural Language Processing (NLP)",
+                "Docker"
+            ]
+            project_name="ParseCV"
+            link_text=None
+
+        />
+
+        <Project
             title="Wireguard-init"
             overview="Script to automate the creation of a WireGuard server and peers"
             desc="
@@ -461,20 +502,20 @@ fn ContactDetails() -> impl IntoView {
             <div class="experience-card-title">"Or reach me here!"</div>
             <Suspense fallback=|| ()>
                 {move || Suspend::new(async move {
-                    let info = info_result.await.unwrap();
+                    let PersonalInfo {email, linkedin} = info_result.await.unwrap().into();
                     view! {
                         <p>
                             <span class="custom-text-accent">
                                 <i class="material-icons in-line-icon">mail</i>
                             </span>
-                            {format!("{}", info.email)}
+                            {email}
                         </p>
-                        <p>
+                        <a target="_blank" rel="noopener noreferrer" href={linkedin.clone()}>
                             <span class="custom-text-accent">
                                 <i class="material-icons in-line-icon">account_circle</i>
                             </span>
-                            {format!("{}", info.linkedin)}
-                        </p>
+                            {linkedin.clone()}
+                        </a>
                     }
                 })}
             </Suspense>

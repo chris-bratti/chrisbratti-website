@@ -1,5 +1,3 @@
-use std::{fs::File, io::Read};
-
 use cfg_if::cfg_if;
 use leptos::{prelude::ServerFnError, server};
 
@@ -28,6 +26,7 @@ cfg_if! {
         use super::SessionData;
         use actix_identity::Identity;
         use actix_web::{HttpMessage, Responder};
+        use std::{fs::File, io::Read};
 
         fn load_certificate() -> Result<Certificate, reqwest::Error> {
             let mut buf = Vec::new();

@@ -8,6 +8,13 @@ cfg_if! {
         use std::path::PathBuf;
         use actix_web::web;
         use redis::{Client, Commands};
+        use chrisbratti_website::server_functions::get_env_variable;
+
+        use lazy_static::lazy_static;
+
+        lazy_static! {
+            static ref RESUME_FILE_NAME: String = get_env_variable("RESUME_FILE_NAME").expect("RESUME_FILE_NAME not set!");
+        }
     }
 }
 
@@ -165,7 +172,7 @@ pub async fn download_pdf(
     }
 
     // Update to resume path var
-    let path: PathBuf = format!("/files/ChrisBratti_Resume.pdf").into();
+    let path: PathBuf = format!("uploads/{}.pdf", RESUME_FILE_NAME.as_str()).into();
 
     let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {
         disposition: DispositionType::Attachment,

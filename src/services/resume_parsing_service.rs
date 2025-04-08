@@ -25,8 +25,8 @@ pub async fn parse_resume(file_bytes: Vec<u8>) -> Result<Resume, Box<dyn std::er
     );
 
     let res = CLIENT
-        .post(format!("{}/api/parse", PARSE_URL.to_string()))
-        .header("apiKey", PARSE_API_KEY.to_string())
+        .post(format!("{}/api/parse", PARSE_URL.as_str()))
+        .header("apiKey", PARSE_API_KEY.as_str())
         .multipart(form)
         .send()
         .await?;
