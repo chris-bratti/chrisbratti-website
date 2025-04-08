@@ -41,6 +41,15 @@ pub async fn parse_resume(file_bytes: Vec<u8>) -> Result<Resume, Box<dyn std::er
     Ok(resume)
 }
 
+pub fn update_resume_json() -> Result<(), Box<dyn std::error::Error>> {
+    let pending_path: PathBuf = "resumes/parsed_resume_pending.json".into();
+    let current_path: PathBuf = "resumes/parsed_resume.json".into();
+
+    fs::copy(&pending_path, &current_path)?;
+
+    Ok(())
+}
+
 // Saves resume response as JSON file. Will probably replace with postgres db later on
 pub async fn save_resume_json(resume: &Resume) -> Result<(), Box<dyn std::error::Error>> {
     // Overwrites existing parsed_resume.json file
@@ -48,7 +57,7 @@ pub async fn save_resume_json(resume: &Resume) -> Result<(), Box<dyn std::error:
         .write(true)
         .create(true)
         .truncate(true)
-        .open("parsed_resume.json")?;
+        .open("resumes/parsed_resume_pending.json")?;
 
     let resume_json = serde_json::to_string(&resume)?;
 
@@ -58,7 +67,7 @@ pub async fn save_resume_json(resume: &Resume) -> Result<(), Box<dyn std::error:
 }
 
 pub async fn load_resume() -> Result<Resume, Box<dyn std::error::Error>> {
-    let resume_string = fs::read_to_string("parsed_resume.json")?;
+    let resume_string = fs::read_to_string("resumes/parsed_resume.json")?;
 
     let resume = serde_json::from_str::<Resume>(&resume_string)?;
 

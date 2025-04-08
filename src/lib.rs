@@ -1,3 +1,5 @@
+use std::sync::RwLock;
+
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use server_functions::get_env_variable;
@@ -13,6 +15,9 @@ pub mod routes;
 
 #[cfg(feature = "ssr")]
 pub mod services;
+
+#[cfg(feature = "ssr")]
+pub mod middleware;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
@@ -90,6 +95,11 @@ impl SmtpInfo {
             key: smtp_key,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResumeCache {
+    pub resume: RwLock<Resume>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

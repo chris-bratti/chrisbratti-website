@@ -15,4 +15,4 @@ target/
 
 **.pem
 
-parsed_resume.json
+**.json

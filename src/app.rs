@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use crate::oauth::oauth_client::*;
-use crate::{server_functions::*, PersonalInfo, Resume};
+use crate::{server_functions::*, PersonalInfo, ResumeCache};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{components::*, path};
@@ -251,7 +251,8 @@ fn ContactForm() -> impl IntoView {
 
 #[component]
 fn ExperienceDetails() -> impl IntoView {
-    let resume: Arc<Resume> = expect_context();
+    let resume_cache: Arc<ResumeCache> = expect_context();
+    let resume = resume_cache.resume.read().unwrap();
     let pdf_link = Resource::new_blocking(|| (), |_| generate_pdf_link());
 
     let experience_items = resume
@@ -324,7 +325,8 @@ fn SkillItem<'a>(title: &'static str, skills: &'a Vec<String>) -> impl IntoView 
 
 #[component]
 fn SkillsDetails() -> impl IntoView {
-    let resume: Arc<Resume> = expect_context();
+    let resume_cache: Arc<ResumeCache> = expect_context();
+    let resume = resume_cache.resume.read().unwrap();
     view! {
         <SkillItem title="Languages" skills=resume.skills.languages.as_ref().unwrap() />
         <SkillItem title="Tools and Frameworks" skills=resume.skills.frameworks.as_ref().unwrap() />

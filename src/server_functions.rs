@@ -3,7 +3,7 @@ use std::sync::Arc;
 use cfg_if::cfg_if;
 use leptos::{prelude::ServerFnError, server};
 
-use crate::{PersonalInfo, Resume, UserInfo};
+use crate::{PersonalInfo, ResumeCache, UserInfo};
 
 // Backend dependencies and functions
 cfg_if! {
@@ -278,8 +278,8 @@ pub async fn get_user_info() -> Result<Option<UserInfo>, ServerFnError> {
 }
 
 #[server]
-pub async fn get_resume_info() -> Result<Arc<Resume>, ServerFnError> {
-    let resume: web::Data<Resume> = extract().await?;
+pub async fn get_resume_info() -> Result<Arc<ResumeCache>, ServerFnError> {
+    let resume: web::Data<ResumeCache> = extract().await?;
 
     Ok(resume.into_inner())
 }
