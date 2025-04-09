@@ -8,21 +8,33 @@ cfg_if! {
         use std::path::PathBuf;
         use actix_web::web;
         use redis::{Client, Commands};
+        use chrisbratti_website::server_functions::get_env_variable;
+
+        use lazy_static::lazy_static;
+
+        lazy_static! {
+            static ref RESUME_FILE_NAME: String = get_env_variable("RESUME_FILE_NAME").expect("RESUME_FILE_NAME not set!");
+        }
     }
 }
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    use std::time::Duration;
+    use std::{sync::RwLock, time::Duration};
 
     use actix_files::Files;
     use actix_identity::IdentityMiddleware;
     use actix_session::{config::PersistentSession, storage::RedisSessionStore, SessionMiddleware};
     use actix_web::{cookie::Key, *};
     use chrisbratti_website::{
-        app::*, oauth::oauth_client::handle_oauth_response, server_functions::get_env_variable,
-        PersonalInfo, SmtpInfo,
+        app::*,
+        middleware::VerifyApiKey,
+        oauth::oauth_client::handle_oauth_response,
+        routes::resume_routes::{approve_pending_resume, upload_resume},
+        server_functions::get_env_variable,
+        services::resume_parsing_service::load_resume,
+        PersonalInfo, ResumeCache, SmtpInfo,
     };
     use leptos::config::get_configuration;
     use leptos::prelude::*;
@@ -33,6 +45,12 @@ async fn main() -> std::io::Result<()> {
     let addr = conf.leptos_options.site_addr;
     let redis_connection_string =
         get_env_variable("REDIS_CONNECTION_STRING").expect("Connection string not set!");
+
+    let resume = load_resume().await.unwrap();
+
+    let resume_cache = web::Data::new(ResumeCache {
+        resume: RwLock::new(resume),
+    });
 
     let personal_info = web::Data::new(PersonalInfo::new());
 
@@ -68,6 +86,12 @@ async fn main() -> std::io::Result<()> {
             .service(favicon)
             .service(download_pdf)
             .route("/auth", web::get().to(handle_oauth_response))
+            .service(
+                web::scope("/internal")
+                    .wrap(VerifyApiKey)
+                    .service(upload_resume)
+                    .service(approve_pending_resume),
+            )
             .leptos_routes(routes, {
                 let leptos_options = leptos_options.clone();
                 move || {
@@ -92,6 +116,7 @@ async fn main() -> std::io::Result<()> {
                 }
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
+            .app_data(resume_cache.clone())
             .app_data(personal_info.clone())
             .app_data(smtp_info.clone())
             .app_data(redis_client.clone())
@@ -159,7 +184,8 @@ pub async fn download_pdf(
         ));
     }
 
-    let path: PathBuf = format!("/files/ChrisBratti_Resume.pdf").into();
+    // Update to resume path var
+    let path: PathBuf = format!("uploads/{}.pdf", RESUME_FILE_NAME.as_str()).into();
 
     let file = NamedFile::open(path)?.set_content_disposition(ContentDisposition {
         disposition: DispositionType::Attachment,

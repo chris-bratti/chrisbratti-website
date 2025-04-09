@@ -1,3 +1,5 @@
+use std::sync::RwLock;
+
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "ssr")]
 use server_functions::get_env_variable;
@@ -7,6 +9,15 @@ pub mod oauth;
 pub mod app;
 
 pub mod server_functions;
+
+#[cfg(feature = "ssr")]
+pub mod routes;
+
+#[cfg(feature = "ssr")]
+pub mod services;
+
+#[cfg(feature = "ssr")]
+pub mod middleware;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
@@ -84,4 +95,53 @@ impl SmtpInfo {
             key: smtp_key,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResumeCache {
+    pub resume: RwLock<Resume>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Resume {
+    info: ApplicantInfo,
+    skills: Skills,
+    overview: String,
+    experience: Vec<Experience>,
+    education: Vec<Education>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Experience {
+    company: Option<String>,
+    title: Option<String>,
+    duration: Option<String>,
+    location: Option<String>,
+    desc: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Education {
+    college: Option<String>,
+    degree: Option<String>,
+    major: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Skills {
+    languages: Option<Vec<String>>,
+    frameworks: Option<Vec<String>>,
+    devops: Option<Vec<String>>,
+    database: Option<Vec<String>>,
+    dev_tools: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ApplicantInfo {
+    name: Option<String>,
+    phone: Option<String>,
+    email: Option<String>,
+    github: Option<String>,
+    linkedin: Option<String>,
+    website: Option<String>,
 }

@@ -1,7 +1,9 @@
+use std::sync::Arc;
+
 use cfg_if::cfg_if;
 use leptos::{prelude::ServerFnError, server};
 
-use crate::{PersonalInfo, UserInfo};
+use crate::{PersonalInfo, ResumeCache, UserInfo};
 
 // Backend dependencies and functions
 cfg_if! {
@@ -273,4 +275,11 @@ pub async fn get_user_info() -> Result<Option<UserInfo>, ServerFnError> {
         println!("No user found");
         Ok(None)
     }
+}
+
+#[server]
+pub async fn get_resume_info() -> Result<Arc<ResumeCache>, ServerFnError> {
+    let resume: web::Data<ResumeCache> = extract().await?;
+
+    Ok(resume.into_inner())
 }
