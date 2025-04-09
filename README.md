@@ -4,15 +4,17 @@ A full-stack resume website, written in Rust with the Leptos framework
 
 ## ParseCV integration
 
-This app integrates with my [ParseCV](https://github.com/chris-bratti/ParseCV) API to parse PDF resume and populate the front end with the JSON response
+This app integrates with my [ParseCV](https://github.com/chris-bratti/ParseCV) API to parse my uploaded resume and populate the UI with the result. This means I don't have to hard-code the information from my resume
+into this site, I can just upload an updated resume and the website will pick up the new data! Check out the `ExperienceDetails` component in `app.rs` to see an example in action - it uses a `ResumeCache` object to
+populate each job's company name, job title, duration, and all description items! Here is a system design overview:
 
 ![website-diagram](diagrams/website-diagram.png "Diagram")
 
 The above diagram shows how the resume update process works. For simplicity it doesn't include the approval endpoint.
 
 ### Front end process
-- On start up, the `parsed_resume.json` file containing the resume's JSON payload is read from and
-saved in the `Resume Cache`
+- On start-up, the back end reads the `parsed_resume.json` file containing the resume's JSON payload and 
+saves the info in the `Resume Cache`
 - The front-end reads from the `Resume Cache` to populate the page when the page is loaded
 
 ### Update process
@@ -38,6 +40,14 @@ This website also serves as an OAuth2 client for my [Auth-Server application](ht
 To integrate an application (like this site, referred later to as `website`) with `Auth Server`, it must first be registered. When registering, the application must provide a 
 `redirect_url` so `Auth Server` knows where to redirect users after a successful login. Once the application's registration is approved, it is given a `client_id` and a `client_secret`. These credentials
 are unique to each application and stored securely.
+
+### General overview
+1. User clicks the "Login" button on the `website` and is redirected to the `Auth Server` application
+2. User logs into `Auth Server` with their credentials and `Auth Server` validates them
+3. `Auth Server` generates an `authorization_code` and redirects user back to `website`, adding the `authorization_code` into the URL
+4. `website` receives this `authorization_code` and uses it to make a request to the `Auth Server`'s `/token` endpoint in exchange for an `access_token` and `refresh_token`
+5. The `access_token` can be used for 10 minutes to request user info from `Auth Server`'s `/user` endpoint
+6. `refresh_token` can be used for 30 days to request a new `access_token`
 
 ### Step 1 - Login
 
